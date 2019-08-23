@@ -865,6 +865,7 @@ MonoBehaviour:
   PlayTime: 3
   Difficulty: 0
   speed: 10
+  GlobalOffset: 0
   NotesPrefab: {fileID: 427921665048636195, guid: a7d28b50aeecd7d45871ec751bffd8bb,
     type: 3}
   audioSource: {fileID: 945451338}

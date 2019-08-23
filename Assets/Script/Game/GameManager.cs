@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] float PlayTime = 3.0f;
     [SerializeField] int Difficulty = 0; //0Easy 1Normal 2Hard 3VeryHard 4Extra
     [SerializeField] float speed = 10f;
+    [SerializeField] double GlobalOffset = 0;
     public GameObject NotesPrefab;
     public AudioSource audioSource;
     public GameObject rawImage;
@@ -57,6 +58,10 @@ public class GameManager : MonoBehaviour
     public static float ArrivalTime;
     public static float NoteSpeed; //他のオブジェクト用変数
 
+    //ノーツの起動時間
+    public static double[] NoteStartTime;
+    private int NextNotesNumber = 0;
+
     void Awake()
     {
         Debug.Log("ゲームが開始されました");
@@ -77,6 +82,37 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         
+        if (TimeComponent.GetCurrentTimePast() >= NoteStartTime[NextNotesNumber] && TimeComponent.StartTime!=0)
+        {
+            NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
+            
+            if (NextNotesNumber!=(MaxNotesAmount-1))
+               NextNotesNumber++;
+            while (checkNextNoteIsSameTime(NextNotesNumber-1))
+            {
+                NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
+                NextNotesNumber++;
+            }
+        }
+    }
+
+    private bool checkNextNoteIsSameTime(int num)
+    {
+        if(num+1 < (MaxNotesAmount - 1))
+        {
+            if (Notes[num].num == Notes[num+1].num)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
     }
 
     IEnumerator StartSettings()
@@ -102,7 +138,7 @@ public class GameManager : MonoBehaviour
         Composer = musicinfo.credits.composer;
         Lyrics = musicinfo.credits.lyrics;
         Vocal = musicinfo.credits.vocal;
-        MusicDataLoader.Notes note = GetComponent<MusicDataLoader>().getNotesData(MusicID);
+        MusicDataLoader.Notes note = GetComponent<MusicDataLoader>().getNotesData(Difficulty, MusicID);
         BPM = note.BPM;
         Offset = note.offset;
         Notes = note.notes;
@@ -110,11 +146,27 @@ public class GameManager : MonoBehaviour
         //ノーツ生成
         NotesPrefab.SetActive(false);
         double BPS = BPM / 60;
-        int i = 0;
-        foreach (MusicDataLoader.NoteInfo temp in Notes)
+        for(int i = 0; i < MaxNotesAmount; i++)
         {
-            SpawnNotes(i, temp.block);
-            i++;
+            SpawnNotes(i, Notes[i].block);
+        }
+
+        //ノーツ生成時刻計算
+        NoteStartTime = new double[MaxNotesAmount];
+        for(int n=0; n<MaxNotesAmount; n++)
+        {
+            //1ノーツの単位 60/(BPM*LPB)
+            double SPB = ((double)60 / ((double)BPM * (double)Notes[n].LPB));
+            NoteStartTime[n] = SPB * (double)Notes[n].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset;
+            if(n+1 != MaxNotesAmount && Notes[n].num == Notes[n+1].num && Notes[n].LPB== Notes[n + 1].LPB && Notes[n].type == Notes[n + 1].type)
+            {
+                NoteStartTime[n + 1] = NoteStartTime[n];
+                n++;
+            }
+            if (Notes[n].type == 2)
+            {
+                //スライダーの処理
+            }
         }
 
         //インターフェース
@@ -161,11 +213,17 @@ public class GameManager : MonoBehaviour
 
     private void SpawnNotes(int num, int place)
     {
-        GameObject cloneObject = Instantiate(NotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45,0,0), NotesParentObject.transform);
-        cloneObject.SetActive(false);
-        cloneObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
-        cloneObject.name = num.ToString();
-        cloneObject.GetComponent<NoteController>().SetRailNumber(place);
+        if (Notes[num].type == 1)
+        { //Normal Notes
+            GameObject ClonedNotesObject = Instantiate(NotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
+            ClonedNotesObject.SetActive(false);
+            ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
+            ClonedNotesObject.name = num.ToString();
+            ClonedNotesObject.GetComponent<NoteController>().SetRailNumber(place);
+        }else if (Notes[num].type == 2)
+        { //Slider Notes
+
+        }
     }
 
     IEnumerator GetAudioClip(string path)

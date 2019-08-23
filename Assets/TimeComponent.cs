@@ -7,6 +7,11 @@ public class TimeComponent : MonoBehaviour
     public static double StartTime;
     public static double[] KeyPressedTime;
 
+    void Awake()
+    {
+        KeyPressedTime = new double[5];
+    }
+
     public static void SetStartTime()
     {
         StartTime = Time.time;

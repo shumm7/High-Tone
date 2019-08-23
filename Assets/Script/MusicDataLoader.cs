@@ -39,9 +39,9 @@ public class MusicDataLoader : MonoBehaviour
         return temp;
     }
 
-    public Notes getNotesData(string id)
+    public Notes getNotesData(int difficulty, string id)
     {
-        string json = load(@"Music/Notes/" + id + ".json");
+        string json = load(@"Music/Notes/" + id + "/"+ difficulty.ToString() + ".json");
         Notes temp = new Notes();
         try
         {
