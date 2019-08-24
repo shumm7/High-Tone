@@ -29,7 +29,6 @@ public class KeyPressedEffect : MonoBehaviour
         {
             audioSource.PlayOneShot(audioSource.clip);
             TimeComponent.SetPressedKeyTime(0);
-            Debug.Log(TimeComponent.GetCurrentTimePast());
         }
         if (Input.GetKeyDown(KeyCode.W))
         {

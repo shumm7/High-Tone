@@ -22,6 +22,9 @@ public class GameManager : MonoBehaviour
     public GameObject rawImage;
     public RenderTexture renderTexture;
     public GameObject NotesParentObject;
+
+    //UI
+    public Image MusicArtwork;
     public Text MusicTitleText;
     public Text AuthorText;
     public TextMeshProUGUI ScoreText;
@@ -36,7 +39,7 @@ public class GameManager : MonoBehaviour
 
     // 曲のデータ
     string MusicName;
-    int MaxNotesAmount;
+    public static int MaxNotesAmount;
     int Level;
     bool IsVideo;
     string Composer;
@@ -61,6 +64,7 @@ public class GameManager : MonoBehaviour
     //ノーツの起動時間
     public static double[] NoteStartTime;
     private int NextNotesNumber = 0;
+    private float MusicStartTimeOffset = 0;
 
     void Awake()
     {
@@ -143,22 +147,22 @@ public class GameManager : MonoBehaviour
         Offset = note.offset;
         Notes = note.notes;
 
-        //ノーツ生成
-        NotesPrefab.SetActive(false);
-        double BPS = BPM / 60;
-        for(int i = 0; i < MaxNotesAmount; i++)
-        {
-            SpawnNotes(i, Notes[i].block);
-        }
-
         //ノーツ生成時刻計算
         NoteStartTime = new double[MaxNotesAmount];
-        for(int n=0; n<MaxNotesAmount; n++)
+
+        double tSPB = ((double)60 / ((double)BPM * (double)Notes[0].LPB));
+        if ((tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset) <= 0)
+        {
+            MusicStartTimeOffset = Mathf.Ceil(-(float)(tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset));
+        }
+
+        for (int n = 0; n < MaxNotesAmount; n++)
         {
             //1ノーツの単位 60/(BPM*LPB)
             double SPB = ((double)60 / ((double)BPM * (double)Notes[n].LPB));
-            NoteStartTime[n] = SPB * (double)Notes[n].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset;
-            if(n+1 != MaxNotesAmount && Notes[n].num == Notes[n+1].num && Notes[n].LPB== Notes[n + 1].LPB && Notes[n].type == Notes[n + 1].type)
+
+            NoteStartTime[n] = SPB * (double)Notes[n].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
+            if (n + 1 != MaxNotesAmount && Notes[n].num == Notes[n + 1].num && Notes[n].LPB == Notes[n + 1].LPB && Notes[n].type == Notes[n + 1].type)
             {
                 NoteStartTime[n + 1] = NoteStartTime[n];
                 n++;
@@ -169,12 +173,26 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        //ノーツ生成
+        NotesPrefab.SetActive(false);
+        for(int i = 0; i < MaxNotesAmount; i++)
+        {
+            SpawnNotes(i, Notes[i].block);
+        }
+
         //インターフェース
         MusicTitleText.text = MusicName;
         AuthorText.text = Composer;
         LevelText.text = Level.ToString();
         ScoreText.text = Score.ToString();
         ComboText.text = Combo.ToString();
+
+        //アートワーク設定
+        byte[] bytes = File.ReadAllBytes("Music/"+MusicID+ "/image.png");
+        Texture2D texture = new Texture2D(55, 55, TextureFormat.ARGB4444, false);
+        texture.LoadImage(bytes);
+        texture.Compress(false);
+        MusicArtwork.sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.width), new Vector2(0.5f, 0.5f));
 
         //ビデオの設定
         VideoPlayer videoPlayer = rawImage.GetComponent<VideoPlayer>();
@@ -192,11 +210,13 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds( PlayTime + (FadeInTime * 1.5f) );
 
         //音楽の再生
-        audioSource.Play();
         TimeComponent.SetStartTime();
+        yield return new WaitForSeconds(MusicStartTimeOffset);
+        audioSource.Play();
         rawImage.SetActive(true);
         if(PlayVideo)
             videoPlayer.Play();
+
 
     }
 
@@ -220,7 +240,9 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<NoteController>().SetRailNumber(place);
-        }else if (Notes[num].type == 2)
+            ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+        }
+        else if (Notes[num].type == 2)
         { //Slider Notes
 
         }
