@@ -6,20 +6,20 @@ using System;
 
 public class MusicDataLoader : MonoBehaviour
 {
-    public MusicList getMusicList()
+    public string[] getMusicList()
     {
         string json = load(@"Music/list.json");
-        MusicList temp = new MusicList();
+        List temp = new List();
         try
         {
-            temp = JsonUtility.FromJson<MusicList>(json);
+            temp = JsonUtility.FromJson<List>(json);
         }
         catch(Exception e)
         {
             Debug.LogWarning(e.Message);
             return null;
         }
-        return temp;
+        return temp.music;
     }
 
     public MusicProperty getMusicProperty(string id)
@@ -39,6 +39,22 @@ public class MusicDataLoader : MonoBehaviour
         return temp;
     }
 
+    public Category[] getCategoryList()
+    {
+        string json = load(@"Music/list.json");
+        List temp = new List();
+        try
+        {
+            temp = JsonUtility.FromJson<List>(json);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e.Message);
+            return null;
+        }
+        return temp.category;
+    }
+
     public Notes getNotesData(int difficulty, string id)
     {
         string json = load(@"Music/Notes/" + id + "/"+ difficulty.ToString() + ".json");
@@ -56,14 +72,17 @@ public class MusicDataLoader : MonoBehaviour
     }
 
 
-    public class MusicList
+    public class List
     {
         public string[] music;
+        public Category[] category;
     }
 
     public class MusicProperty
     {
         public string music;
+        public string ruby;
+        public string category;
         public int notes;
         public int[] level;
         public bool video;
@@ -95,6 +114,13 @@ public class MusicDataLoader : MonoBehaviour
         public int block;
         public int type;
         [System.NonSerialized] public NoteInfo[] notes;
+    }
+
+    [Serializable]
+    public class Category
+    {
+        public string id;
+        public string name;
     }
 
     public bool saveFile(string Filename, string text)

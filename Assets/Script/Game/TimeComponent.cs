@@ -34,7 +34,8 @@ public class TimeComponent : MonoBehaviour
 
     public static void SetPressedKeyTime(int num)
     {
-        KeyPressedTime[num] = Time.time - StartTime;
+        if(GameManager.isPlaying)
+            KeyPressedTime[num] = Time.time - StartTime;
     }
 
     public static double GetPressedKeyTime(int num)

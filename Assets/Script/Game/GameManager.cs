@@ -10,6 +10,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     public static bool DebugMode = false;
+    public static bool isPlaying = false;
 
     [SerializeField] string MusicID; //ヒエラルキー上からMusicIDを入力するとデバッグモード
     [SerializeField] bool PlayVideo = true;
@@ -225,7 +226,7 @@ public class GameManager : MonoBehaviour
         rawImage.SetActive(true);
         if(PlayVideo)
             videoPlayer.Play();
-
+        isPlaying = true;
 
     }
 
