@@ -59,25 +59,33 @@ public class ScoreCalculation : MonoBehaviour
         }
     }
 
-    public static void SetNoteJudgement(int judge) //0Perfect 1Great 2Good 3Bad 4Miss
+    public static void SetNoteJudgement(int judge, int type) //0Perfect 1Great 2Good 3Bad 4Miss
     {
         JudgementCount[judge]++;
         float BonusMultiplier = Mathf.Round(Combo / 20f) * 10;
         BonusMultiplier = (BonusMultiplier / 100f) * 5f + 1;
+        float SpecialNoteMultiplier = 1;
+
+        if (type == NoteType.Special)
+        {
+            BonusMultiplier *= 2;
+            SpecialNoteMultiplier = 2;
+        }
+
         switch (judge)
         {
             case 0: //Perfect
-                Score += (int)(200f * BonusMultiplier);
+                Score += (int)(200f * SpecialNoteMultiplier * BonusMultiplier);
                 Combo++;
                 break;
             case 1: //Great
-                Score += (int)(100f * BonusMultiplier);
+                Score += (int)(100f * SpecialNoteMultiplier * BonusMultiplier);
                 Combo++;
                 break;
             case 2: //Good
                 MaxCombo = Combo;
                 Combo = 0;
-                Score += 50;
+                Score += (int)(50f * SpecialNoteMultiplier);
                 break;
             case 3:
             case 4:
@@ -97,8 +105,17 @@ public class ScoreCalculation : MonoBehaviour
         public const int Miss = 4;
     }
 
+    public static class NoteType
+    {
+        public const int Normal = 1;
+        public const int Slider = 2;
+        public const int Special = 3;
+        public const int Damage = 4;
+    }
+
     private void playsound(int judge)
     {
+        /*
         switch(judge)
         {
             case 0: //Perfect
@@ -113,5 +130,6 @@ public class ScoreCalculation : MonoBehaviour
             default:
                 break;
         }
+        */
     }
 }

@@ -19,6 +19,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] float speed = 10f;
     [SerializeField] double GlobalOffset = 0;
     public GameObject NotesPrefab;
+    //public GameObject SliderNotesPrefab;
+    public GameObject SpecialNotesPrefab;
+    //public GameObject DamageNotesPrefab;
     public AudioSource audioSource;
     public GameObject rawImage;
     public RenderTexture renderTexture;
@@ -243,7 +246,7 @@ public class GameManager : MonoBehaviour
 
     private void SpawnNotes(int num, int place)
     {
-        if (Notes[num].type == 1)
+        if (Notes[num].type == ScoreCalculation.NoteType.Normal)
         { //Normal Notes
             GameObject ClonedNotesObject = Instantiate(NotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
             ClonedNotesObject.SetActive(false);
@@ -252,8 +255,21 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.GetComponent<NoteController>().SetRailNumber(place);
             ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
         }
-        else if (Notes[num].type == 2)
+        else if (Notes[num].type == ScoreCalculation.NoteType.Slider)
         { //Slider Notes
+
+        }
+        else if (Notes[num].type == ScoreCalculation.NoteType.Special)
+        { //Special Notes
+            GameObject ClonedNotesObject = Instantiate(SpecialNotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
+            ClonedNotesObject.SetActive(false);
+            ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
+            ClonedNotesObject.name = num.ToString();
+            ClonedNotesObject.GetComponent<SpecialNoteController>().SetRailNumber(place);
+            ClonedNotesObject.GetComponent<SpecialNoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+        }
+        else if (Notes[num].type == ScoreCalculation.NoteType.Damage)
+        { //Damage Notes
 
         }
     }

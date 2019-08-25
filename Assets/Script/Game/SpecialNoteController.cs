@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoteController : MonoBehaviour
+public class SpecialNoteController : MonoBehaviour
 {
 
     [SerializeField] float speed;
@@ -12,12 +12,14 @@ public class NoteController : MonoBehaviour
     [SerializeField] GameObject tappedEffectGoodPrefab;
     [SerializeField] GameObject tappedEffectGreatPrefab;
     [SerializeField] GameObject tappedEffectPerfectPrefab;
-    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioSource[] audioSource;
     [SerializeField] AudioClip NotePerfectSE;
     [SerializeField] AudioClip NoteGreatSE;
     [SerializeField] AudioClip NoteGoodSE;
     //[SerializeField] AudioClip NoteBadSE;
     //[SerializeField] AudioClip NoteMissSE;
+    [SerializeField] AudioClip NoteSpecialSE;
+
 
 
     public static float[] EffectX = { -2.6f, -1.3f, 0, 1.3f, 2.6f };
@@ -29,7 +31,7 @@ public class NoteController : MonoBehaviour
     {
         speed = GameManager.NoteSpeed;
         Distance = GameManager.ArrivalTime;
-        audioSource = transform.parent.gameObject.GetComponent<AudioSource>();
+        audioSource = transform.parent.gameObject.GetComponents<AudioSource>();
     }
 
     void FixedUpdate()
@@ -45,7 +47,7 @@ public class NoteController : MonoBehaviour
         if (this.transform.position.y < -2.5f)
         {
             this.gameObject.SetActive(false);
-            ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Miss, 1);
+            ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Miss, 3);
         }
 
         if (this.gameObject.activeSelf)
@@ -54,32 +56,34 @@ public class NoteController : MonoBehaviour
             if (diff <= 0.15 && diff > 0.1) //Bad
             {
                 this.gameObject.SetActive(false);
-                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 1);
+                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 3);
                 AddEffect(ScoreCalculation.Judgement.Bad);
 
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Bad");
             }
             else if (diff <= 0.1 && diff > 0.06) //Good
             {
-                audioSource.PlayOneShot(NoteGoodSE);
+                audioSource[0].PlayOneShot(NoteGoodSE);
                 this.gameObject.SetActive(false);
-                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Good, 1);
+                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Good, 3);
                 AddEffect(ScoreCalculation.Judgement.Good);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Good");
             }
             else if (diff <= 0.06 && diff > 0.03) //Great
             {
-                audioSource.PlayOneShot(NoteGreatSE);
+                audioSource[0].PlayOneShot(NoteGreatSE);
+                audioSource[1].PlayOneShot(NoteSpecialSE);
                 this.gameObject.SetActive(false);
-                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Great, 1);
+                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Great, 3);
                 AddEffect(ScoreCalculation.Judgement.Great);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Great");
             }
             else if (diff <= 0.03 && diff >= 0) //Perfect
             {
-                audioSource.PlayOneShot(NotePerfectSE);
+                audioSource[0].PlayOneShot(NotePerfectSE);
+                audioSource[1].PlayOneShot(NoteSpecialSE);
                 this.gameObject.SetActive(false);
-                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Perfect, 1);
+                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Perfect, 3);
                 AddEffect(ScoreCalculation.Judgement.Perfect);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Perfect");
             }
