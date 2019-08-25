@@ -92,3 +92,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
+  Rail: 0
+  ArrivalTime: 0
+  tappedEffectBadPrefab: {fileID: 100000, guid: 83cd9cc9f9c88824ba18dc59b05ae328,
+    type: 3}
+  tappedEffectGoodPrefab: {fileID: 100004, guid: fb7b0526ade434043b350a180d741cf3,
+    type: 3}
+  tappedEffectGreatPrefab: {fileID: 100004, guid: fb7b0526ade434043b350a180d741cf3,
+    type: 3}
+  tappedEffectPerfectPrefab: {fileID: 100018, guid: a40b64bf23366dc42a892af2c6ff6140,
+    type: 3}
+  SoundEffectPerfect: {fileID: 0}
+  SoundEffectGreat: {fileID: 0}
+  SoundEffectGood: {fileID: 0}

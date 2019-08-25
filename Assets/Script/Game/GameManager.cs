@@ -9,7 +9,7 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    private bool DebugMode = false;
+    public static bool DebugMode = false;
 
     [SerializeField] string MusicID; //ヒエラルキー上からMusicIDを入力するとデバッグモード
     [SerializeField] bool PlayVideo = true;
@@ -85,17 +85,19 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        
-        if (TimeComponent.GetCurrentTimePast() >= NoteStartTime[NextNotesNumber] && TimeComponent.StartTime!=0)
-        {
-            NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
-            
-            if (NextNotesNumber!=(MaxNotesAmount-1))
-               NextNotesNumber++;
-            while (checkNextNoteIsSameTime(NextNotesNumber-1))
+
+        if (NextNotesNumber <= (MaxNotesAmount - 1)) {
+            if (TimeComponent.GetCurrentTimePast() >= NoteStartTime[NextNotesNumber] && TimeComponent.StartTime != 0)
             {
                 NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
+                //DebugLog(NextNotesNumber.ToString() + "番のノーツが移動開始");
                 NextNotesNumber++;
+                while (checkNextNoteIsSameTime(NextNotesNumber - 1))
+                {
+                    NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
+                    //DebugLog(NextNotesNumber.ToString() + "番のノーツが移動開始");
+                    NextNotesNumber++;
+                }
             }
         }
     }
@@ -134,6 +136,7 @@ public class GameManager : MonoBehaviour
         }
 
         //楽曲データ取得
+        DebugLog("楽曲データを取得中");
         MusicDataLoader.MusicProperty musicinfo = GetComponent<MusicDataLoader>().getMusicProperty(MusicID);
         MusicName = musicinfo.music;
         MaxNotesAmount = musicinfo.notes;
@@ -148,6 +151,7 @@ public class GameManager : MonoBehaviour
         Notes = note.notes;
 
         //ノーツ生成時刻計算
+        DebugLog("ノーツの移動開始時刻を計算中");
         NoteStartTime = new double[MaxNotesAmount];
 
         double tSPB = ((double)60 / ((double)BPM * (double)Notes[0].LPB));
@@ -173,6 +177,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        DebugLog("ノーツを生成中");
         //ノーツ生成
         NotesPrefab.SetActive(false);
         for(int i = 0; i < MaxNotesAmount; i++)
@@ -181,6 +186,7 @@ public class GameManager : MonoBehaviour
         }
 
         //インターフェース
+        DebugLog("UIの設定中");
         MusicTitleText.text = MusicName;
         AuthorText.text = Composer;
         LevelText.text = Level.ToString();
@@ -195,6 +201,7 @@ public class GameManager : MonoBehaviour
         MusicArtwork.sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.width), new Vector2(0.5f, 0.5f));
 
         //ビデオの設定
+        DebugLog("ビデオの設定中");
         VideoPlayer videoPlayer = rawImage.GetComponent<VideoPlayer>();
         if (PlayVideo)
         {
@@ -203,6 +210,7 @@ public class GameManager : MonoBehaviour
         }
 
         //音楽の設定
+        DebugLog("音楽の設定中");
         string path = "Music/" + MusicID + "/music.wav";
         StartCoroutine(GetAudioClip(path));
 
@@ -212,6 +220,7 @@ public class GameManager : MonoBehaviour
         //音楽の再生
         TimeComponent.SetStartTime();
         yield return new WaitForSeconds(MusicStartTimeOffset);
+        DebugLog("音楽を再生しました");
         audioSource.Play();
         rawImage.SetActive(true);
         if(PlayVideo)
@@ -262,5 +271,11 @@ public class GameManager : MonoBehaviour
             audioSource.clip = DownloadHandlerAudioClip.GetContent(uwr);
             audioSource.clip.name = MusicID;
         }
+    }
+
+    public static void DebugLog(string msg)
+    {
+        if (DebugMode)
+            Debug.Log(msg);
     }
 }
