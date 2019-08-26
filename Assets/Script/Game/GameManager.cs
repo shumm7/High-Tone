@@ -56,6 +56,8 @@ public class GameManager : MonoBehaviour
     //スコア
     int Combo = 0;
     int Score = 0;
+    public static int MaximumScore = 0;
+    public static int MaximumScoreForDisplay = 0;
 
     // ノーツの初期座標
     public static float[] NoteX = {-2.90f, -1.45f, 0, 1.45f, 2.90f};
@@ -254,6 +256,12 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<NoteController>().SetRailNumber(place);
             ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+
+            float temp = Mathf.Round((num + 1) / 20f) * 10;
+            temp = (temp / 100f) * 5f + 1;
+            MaximumScore += (int)(200f * temp);
+
+            MaximumScoreForDisplay += 200;
         }
         else if (Notes[num].type == ScoreCalculation.NoteType.Slider)
         { //Slider Notes
@@ -267,6 +275,12 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<SpecialNoteController>().SetRailNumber(place);
             ClonedNotesObject.GetComponent<SpecialNoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+
+            float temp = Mathf.Round((num + 1) / 20f) * 10;
+            temp = (temp / 100f) * 5f + 1;
+            MaximumScore += (int)(400f * temp * 2);
+
+            MaximumScoreForDisplay += 400;
         }
         else if (Notes[num].type == ScoreCalculation.NoteType.Damage)
         { //Damage Notes

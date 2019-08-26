@@ -11,34 +11,29 @@ public class ScoreCalculation : MonoBehaviour
     //UI
     [SerializeField] TextMeshProUGUI ScoreUI;
     [SerializeField] Text ComboUI;
+    [SerializeField] RawImage ScoreGaugeMaskUI;
+    public float MaximumGaugeWidth = 400;
+    private RectTransform ScoreGaugeRectTran;
 
-    //Sound
-    public AudioSource SoundEffect;
-    public AudioClip AudioClipPerfect;
-    public AudioClip AudioClipGreat;
-    //public AudioClip AudioClipGood;
-    //public AudioClip AudioClipMiss;
-    //public AudioClip AudioClipBad;
+    private int MaxNotesAmount;
+    private int MaximumScore = 0;
+    private int MaximumScoreForDisplay = 0;
+    private static int ScoreAddedFlag = -1;
 
     public static int Combo = 0;
     public static int MaxCombo = 0;
     public static int Score = 0;
     public static int[] JudgementCount;
-    private int MaxNotesAmount;
-    private int MaximumScore = 0;
-    private static int ScoreAddedFlag = -1;
+    public static float ScorePercentage;
 
    void Start()
     {
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
+        MaximumScore = GameManager.MaximumScore;
+        MaximumScoreForDisplay = GameManager.MaximumScoreForDisplay;
 
-        for (int i = 1; i <= 500; i++)
-        {
-            float temp = Mathf.Round(i / 20f) * 10;
-            temp = (temp / 100f) * 5f + 1;
-            MaximumScore += (int)(200f * temp);
-        }
+        ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
     }
 
     void FixedUpdate()
@@ -47,13 +42,23 @@ public class ScoreCalculation : MonoBehaviour
         ScoreUI.text = Score.ToString();
 
         //パーセンテージ計算
+        ScorePercentage = (float)Score / (float)MaximumScore;
+
+        //ゲージ表示
+        float PercentageForGauge = (float)Score / (float)MaximumScoreForDisplay;
+        if(PercentageForGauge >= 1f)
+        {
+            PercentageForGauge = 1f;
+        }
+        Vector2 size = ScoreGaugeRectTran.sizeDelta;
+        size.x = MaximumGaugeWidth * PercentageForGauge;
+        ScoreGaugeRectTran.sizeDelta = size;
     }
 
     void Update()
     {
         if (ScoreAddedFlag!=-1)
         {
-            playsound(ScoreAddedFlag);
             GetComponent<ScoreDisplayText>().StartEffect(ScoreAddedFlag);
             ScoreAddedFlag = -1;
         }
@@ -111,25 +116,5 @@ public class ScoreCalculation : MonoBehaviour
         public const int Slider = 2;
         public const int Special = 3;
         public const int Damage = 4;
-    }
-
-    private void playsound(int judge)
-    {
-        /*
-        switch(judge)
-        {
-            case 0: //Perfect
-                SoundEffect.PlayOneShot(AudioClipPerfect);
-                break;
-            case 1: //Great
-                SoundEffect.PlayOneShot(AudioClipGreat);
-                break;
-            case 2: //Good
-            case 3:
-            case 4:
-            default:
-                break;
-        }
-        */
     }
 }
