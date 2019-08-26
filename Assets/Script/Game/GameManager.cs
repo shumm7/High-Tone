@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
     public AudioSource audioSource;
 
     //Video
+    public VideoClip DefaultVideoClip;
     public GameObject rawImage;
     public RenderTexture renderTexture;
     private VideoPlayer videoPlayer;
@@ -125,6 +126,14 @@ public class GameManager : MonoBehaviour
             }
             GameStatus = Status.Finished;
 
+            //データホルダーに保存
+            DataHolder.Score = ScoreCalculation.Score;
+            DataHolder.ObjectiveScore = ScoreCalculation.ObjectiveScore;
+            DataHolder.MaximumScore = ScoreCalculation.MaximumScore;
+            DataHolder.ScorePercentage = ScoreCalculation.ScorePercentage;
+            DataHolder.Combo = ScoreCalculation.MaxCombo;
+            DataHolder.MaximumCombo = ScoreCalculation.MaxNotesAmount;
+            DataHolder.JudgementAmount = ScoreCalculation.JudgementCount;
         }
     }
 
@@ -231,8 +240,17 @@ public class GameManager : MonoBehaviour
         videoPlayer = rawImage.GetComponent<VideoPlayer>();
         if (PlayVideo)
         {
-            videoPlayer.source = VideoSource.Url;
-            videoPlayer.url = "file://" + Directory.GetCurrentDirectory() + "/" + "Music/" + MusicID + "/video.mp4";
+            string videoPath = Directory.GetCurrentDirectory() + "/" + "Music/" + MusicID + "/video.mp4";
+            if (GetComponent<MusicDataLoader>().checkExist(videoPath))
+            {
+                videoPlayer.url = "file://" + videoPath;
+                videoPlayer.source = VideoSource.Url;
+            }
+            else
+            {
+                videoPlayer.url = DefaultVideoClip.originalPath;
+                videoPlayer.source = VideoSource.Url;
+            }
         }
 
         //音楽の設定

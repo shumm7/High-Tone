@@ -15,9 +15,9 @@ public class ScoreCalculation : MonoBehaviour
     public float MaximumGaugeWidth = 400;
     private RectTransform ScoreGaugeRectTran;
 
-    private int MaxNotesAmount;
-    private int MaximumScore = 0;
-    private int MaximumScoreForDisplay = 0;
+    public static int MaxNotesAmount;
+    public static int MaximumScore = 0;
+    public static int ObjectiveScore = 0;
     private static int ScoreAddedFlag = -1;
 
     public static int Combo = 0;
@@ -34,7 +34,7 @@ public class ScoreCalculation : MonoBehaviour
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
         MaximumScore = GameManager.MaximumScore;
-        MaximumScoreForDisplay = GameManager.MaximumScoreForDisplay;
+        ObjectiveScore = GameManager.MaximumScoreForDisplay;
 
         ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
     }
@@ -48,7 +48,7 @@ public class ScoreCalculation : MonoBehaviour
         ScorePercentage = (float)Score / (float)MaximumScore;
 
         //ゲージ表示
-        float PercentageForGauge = (float)Score / (float)MaximumScoreForDisplay;
+        float PercentageForGauge = (float)Score / (float)ObjectiveScore;
         if (PercentageForGauge >= 1f)
         {
             PercentageForGauge = 1f;
@@ -96,17 +96,20 @@ public class ScoreCalculation : MonoBehaviour
                 Combo++;
                 break;
             case 2: //Good
-                MaxCombo = Combo;
                 Combo = 0;
                 Score += (int)(50f * SpecialNoteMultiplier);
                 break;
             case 3:
             case 4:
-                MaxCombo = Combo;
                 Combo = 0;
                 break;
         }
         ScoreAddedFlag = judge;
+
+        if(MaxCombo < Combo)
+        {
+            MaxCombo = Combo;
+        }
     }
 
     public static class Judgement

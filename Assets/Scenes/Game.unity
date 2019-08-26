@@ -221,7 +221,7 @@ RectTransform:
   m_GameObject: {fileID: 17585814}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
   m_Children:
   - {fileID: 660403290}
   m_Father: {fileID: 414370039}
@@ -1459,7 +1459,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_textAlignment: 1026
   m_characterSpacing: 9
   m_wordSpacing: 0
@@ -1764,6 +1764,7 @@ MonoBehaviour:
     type: 3}
   NotesParentObject: {fileID: 387274634}
   audioSource: {fileID: 945451338}
+  DefaultVideoClip: {fileID: 32900000, guid: 4b5557abfd60f85428d5db62d2b15410, type: 3}
   rawImage: {fileID: 840888568}
   renderTexture: {fileID: 8400000, guid: da7b65b0e0842ad469ba97ca33434336, type: 2}
   MusicArtwork: {fileID: 319623003}
@@ -1818,7 +1819,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 840888568}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 250}
+  m_LocalPosition: {x: 0, y: 0, z: 260}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1406857836}
@@ -3198,7 +3199,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -5.700012, y: -100}
+  m_AnchoredPosition: {x: -5.7000732, y: -100}
   m_SizeDelta: {x: 400, y: 200}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1789223530
@@ -3326,7 +3327,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -11.099976, y: -65.600006}
+  m_AnchoredPosition: {x: -11.099915, y: -65.600006}
   m_SizeDelta: {x: 400, y: 20}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1852732643
