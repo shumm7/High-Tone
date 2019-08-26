@@ -26,7 +26,10 @@ public class ScoreCalculation : MonoBehaviour
     public static int[] JudgementCount;
     public static float ScorePercentage;
 
-   void Start()
+    private bool FullcomboFlag = false;
+
+
+    void Start()
     {
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
@@ -36,7 +39,7 @@ public class ScoreCalculation : MonoBehaviour
         ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         ComboUI.text = Combo.ToString();
         ScoreUI.text = Score.ToString();
@@ -46,21 +49,26 @@ public class ScoreCalculation : MonoBehaviour
 
         //ゲージ表示
         float PercentageForGauge = (float)Score / (float)MaximumScoreForDisplay;
-        if(PercentageForGauge >= 1f)
+        if (PercentageForGauge >= 1f)
         {
             PercentageForGauge = 1f;
         }
         Vector2 size = ScoreGaugeRectTran.sizeDelta;
         size.x = MaximumGaugeWidth * PercentageForGauge;
         ScoreGaugeRectTran.sizeDelta = size;
-    }
 
-    void Update()
-    {
+        //エフェクト
         if (ScoreAddedFlag!=-1)
         {
             GetComponent<ScoreDisplayText>().StartEffect(ScoreAddedFlag);
             ScoreAddedFlag = -1;
+        }
+
+        //フルコンボテキスト
+        if (GameManager.GameStatus == GameManager.Status.Finished && !FullcomboFlag && Combo >= MaxNotesAmount)
+        {
+            GetComponent<ScoreDisplayText>().StartEffectFullCombo();
+            FullcomboFlag = true;
         }
     }
 

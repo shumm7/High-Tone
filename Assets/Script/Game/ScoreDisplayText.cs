@@ -12,7 +12,10 @@ public class ScoreDisplayText : MonoBehaviour
     public RawImage Good;
     public RawImage Bad;
     public RawImage Miss;
+    public RawImage Fullcombo;
+    public AudioSource audioSource;
     public float ScaleChangeTime = 0.1f;
+    public float ScaleChangeTimeFullcombo = 1.2f;
     private GameObject text;
 
     public void StartEffect(int judge)
@@ -24,7 +27,36 @@ public class ScoreDisplayText : MonoBehaviour
         text.transform.localScale = Vector3.zero;
         RectTransform rectTran = text.GetComponent<RectTransform>();
 
-        rectTran.DOScale(new Vector3(0.2f, 0.2f, 0.2f), ScaleChangeTime);
+        rectTran.DOScale(new Vector3(0.12f, 0.12f, 1f), ScaleChangeTime);
+    }
+
+    public void StartEffectFullCombo()
+    {
+        setAllInactive();
+        GameObject fullcomboText = Fullcombo.gameObject;
+        fullcomboText.SetActive(true);
+        RectTransform rectTran = fullcomboText.GetComponent<RectTransform>();
+        fullcomboText.transform.localScale = Vector3.zero;
+
+        rectTran.DOScale(new Vector3(0.5f, 0.5f, 1f), ScaleChangeTimeFullcombo).SetEase(Ease.OutBounce);
+        audioSource.PlayOneShot(audioSource.clip);
+
+        DOVirtual.DelayedCall(ScaleChangeTimeFullcombo + 2, () =>
+        {
+            RawImage FadeInImage = fullcomboText.GetComponent<RawImage>();
+            DOTween.ToAlpha(() => FadeInImage.color, a => FadeInImage.color = a, 0f, 0.5f);
+
+            DOVirtual.DelayedCall(ScaleChangeTimeFullcombo, () =>
+            {
+                fullcomboText.SetActive(false);
+                Color col = FadeInImage.color;
+                col.a = 1;
+                FadeInImage.color = col;
+            }
+            );
+
+        }
+        );
     }
 
     private GameObject getGameObject(int judge)

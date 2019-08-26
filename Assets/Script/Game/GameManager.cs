@@ -6,11 +6,13 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using UnityEngine.Networking;
 using TMPro;
+using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
     public static bool DebugMode = false;
     public static bool isPlaying = false;
+    public static int GameStatus = Status.None; 
 
     [SerializeField] string MusicID; //ヒエラルキー上からMusicIDを入力するとデバッグモード
     [SerializeField] bool PlayVideo = true;
@@ -22,10 +24,15 @@ public class GameManager : MonoBehaviour
     //public GameObject SliderNotesPrefab;
     public GameObject SpecialNotesPrefab;
     //public GameObject DamageNotesPrefab;
+    public GameObject NotesParentObject;
+
+    //Audio
     public AudioSource audioSource;
+
+    //Video
     public GameObject rawImage;
     public RenderTexture renderTexture;
-    public GameObject NotesParentObject;
+    private VideoPlayer videoPlayer;
 
     //UI
     public Image MusicArtwork;
@@ -36,9 +43,8 @@ public class GameManager : MonoBehaviour
     public Text LevelText;
 
     //Loading
-    private AsyncOperation async;
     public GameObject LoadingPanel;
-    public float FadeInTime = 1f;
+    public float FadeInTime = 3f;
     public float[] FadeInUIColor = {55, 55, 55};
 
     // 曲のデータ
@@ -75,10 +81,14 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Debug.Log("ゲームが開始されました");
+        GameStatus = Status.Initializing;
         LoadingPanel.SetActive(true);
 
         //Video用RawImage初期化
         rawImage.SetActive(false);
+        Color col = rawImage.GetComponent<RawImage>().color;
+        col.a = 1f;
+        rawImage.GetComponent<RawImage>().color = col;
         renderTexture.Release();
         LoadingPanel.GetComponent<Image>().color = new Color(FadeInUIColor[0] / 255, FadeInUIColor[1] / 255, FadeInUIColor[2] / 255, 1f);
 
@@ -96,15 +106,25 @@ public class GameManager : MonoBehaviour
             if (TimeComponent.GetCurrentTimePast() >= NoteStartTime[NextNotesNumber] && TimeComponent.StartTime != 0)
             {
                 NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
-                //DebugLog(NextNotesNumber.ToString() + "番のノーツが移動開始");
                 NextNotesNumber++;
                 while (checkNextNoteIsSameTime(NextNotesNumber - 1))
                 {
                     NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
-                    //DebugLog(NextNotesNumber.ToString() + "番のノーツが移動開始");
                     NextNotesNumber++;
                 }
             }
+        }
+
+        if(TimeComponent.GetCurrentTimePast() >= 15 && GameStatus==Status.InGame && audioSource.isPlaying == false)
+        {
+            DebugLog("音楽が終了しました");
+            if (videoPlayer.isPlaying)
+            {
+                RawImage FadeInImage = rawImage.GetComponent<RawImage>();
+                DOTween.ToAlpha( () => FadeInImage.color, a => FadeInImage.color = a, 0f, 1f);
+            }
+            GameStatus = Status.Finished;
+
         }
     }
 
@@ -208,7 +228,7 @@ public class GameManager : MonoBehaviour
 
         //ビデオの設定
         DebugLog("ビデオの設定中");
-        VideoPlayer videoPlayer = rawImage.GetComponent<VideoPlayer>();
+        videoPlayer = rawImage.GetComponent<VideoPlayer>();
         if (PlayVideo)
         {
             videoPlayer.source = VideoSource.Url;
@@ -220,8 +240,13 @@ public class GameManager : MonoBehaviour
         string path = "Music/" + MusicID + "/music.wav";
         StartCoroutine(GetAudioClip(path));
 
-        StartCoroutine(FadeIn());
-        yield return new WaitForSeconds( PlayTime + (FadeInTime * 1.5f) );
+        //FadeIn
+        yield return new WaitForSeconds(1f);
+        Image FadeInImage = LoadingPanel.GetComponent<Image>();
+        DOTween.ToAlpha( () => FadeInImage.color,
+            a => FadeInImage.color = a, 0f, FadeInTime
+        );
+        yield return new WaitForSeconds(PlayTime + FadeInTime);
 
         //音楽の再生
         TimeComponent.SetStartTime();
@@ -231,19 +256,11 @@ public class GameManager : MonoBehaviour
         rawImage.SetActive(true);
         if(PlayVideo)
             videoPlayer.Play();
+
+        //ステータス切り替え
         isPlaying = true;
+        GameStatus = Status.InGame;
 
-    }
-
-    IEnumerator FadeIn()
-    {
-        yield return new WaitForSeconds(FadeInTime / 2);
-        for (var i = 1f; i >= 0; i -= 0.01f)
-        {
-            LoadingPanel.GetComponent<Image>().color = new Color(FadeInUIColor[0] / 255, FadeInUIColor[1] / 255, FadeInUIColor[2] / 255, i);
-            yield return new WaitForSeconds(FadeInTime / 100);
-        }
-        LoadingPanel.SetActive(false);
     }
 
     private void SpawnNotes(int num, int place)
@@ -308,5 +325,13 @@ public class GameManager : MonoBehaviour
     {
         if (DebugMode)
             Debug.Log(msg);
+    }
+
+    public static class Status
+    {
+        public static int None = -1;
+        public static int Initializing = 0;
+        public static int InGame = 1;
+        public static int Finished = 2;
     }
 }
