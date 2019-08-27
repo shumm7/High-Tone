@@ -6,7 +6,7 @@ using System;
 
 public class MusicDataLoader : MonoBehaviour
 {
-    public string[] getMusicList()
+    public List getMusicList()
     {
         string json = load(@"Music/list.json");
         List temp = new List();
@@ -19,7 +19,7 @@ public class MusicDataLoader : MonoBehaviour
             Debug.LogWarning(e.Message);
             return null;
         }
-        return temp.music;
+        return temp;
     }
 
     public MusicProperty getMusicProperty(string id)
@@ -74,7 +74,7 @@ public class MusicDataLoader : MonoBehaviour
 
     public class List
     {
-        public string[] music;
+        public MusicList[] music;
         public Category[] category;
     }
 
@@ -82,7 +82,6 @@ public class MusicDataLoader : MonoBehaviour
     {
         public string music;
         public string ruby;
-        public string category;
         public int notes;
         public int[] level;
         public bool video;
@@ -121,6 +120,13 @@ public class MusicDataLoader : MonoBehaviour
     {
         public string id;
         public string name;
+    }
+
+    [Serializable]
+    public class MusicList
+    {
+        public string id;
+        public string category;
     }
 
     public bool saveFile(string Filename, string text)
