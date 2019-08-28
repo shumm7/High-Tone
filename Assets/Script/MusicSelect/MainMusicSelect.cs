@@ -7,19 +7,95 @@ using DG.Tweening;
 public class MainMusicSelect : MonoBehaviour
 {
     public static string[] SortedMusicList;
-    MusicDataLoader.MusicList[] musicList;
-    MusicDataLoader.Category[] categoryList;
+    public int SortMode = Sortmode.Category;
+    public int Difficulty = 0;
+
+    public static int SelectedFrame = 0;
+    private bool isScreenScrolling = false;
+
+    private int MaximumFrameAmount;
+    private int SelectedFrameNumber;
+    public GameObject FramePrefab;
+    public GameObject FrameParentObject;
+
+    private MusicDataLoader.MusicList[] musicList;
+    private MusicDataLoader.Category[] categoryList;
 
     void Start()
     {
         musicList = GetComponent<MusicDataLoader>().getMusicList().music;
         categoryList = GetComponent<MusicDataLoader>().getMusicList().category;
-        
-        for(int t=0; t<musicList.Length; t++)
-        {
-            Debug.Log(GetSortedMusicID(Sortmode.Category, 0)[t]);
-        }
 
+        SortedMusicList = GetSortedMusicID(SortMode, Difficulty);
+        GenerateFrame(SortedMusicList);
+
+        
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Debug.Log("Scrolling");
+
+            if (SelectedFrame >= SortedMusicList.Length)
+                SelectedFrame = 0;
+            if (SelectedFrame < 0)
+                SelectedFrame = SortedMusicList.Length - 1;
+            FrameScroll(SortedMusicList.Length, SelectedFrame++, 0.2f);
+        }
+    }
+
+    private void FrameScroll(int MaxFrameAmount, int selection, float time)
+    {
+            Sequence sequence = DOTween.Sequence();
+            isScreenScrolling = true;
+
+            for (int i = 0; i < MaxFrameAmount; i++)
+            {
+                RectTransform rectTran = FrameParentObject.transform.Find(i.ToString()).GetComponent<RectTransform>();
+
+                sequence.Join(rectTran.DOLocalMove(new Vector3(440f * (float)(i - selection), 30f, 0), time));
+                if (i != selection) {
+                    sequence.Join(
+                        rectTran.DOScale(new Vector3(0.6f, 0.6f, 1f), time).SetEase(Ease.InOutQuart)
+                    );
+                }
+                else
+                {
+                    sequence.Join(
+                        rectTran.DOScale(new Vector3(0.9f, 0.9f, 1f), time).SetEase(Ease.InOutQuart)
+                    );
+                }
+
+                sequence.Join(
+                    DOVirtual.DelayedCall(time, () =>
+                    {
+                        isScreenScrolling = false;
+                    })
+                );
+
+            }
+    }
+
+    private void GenerateFrame(string[] musicList)
+    {
+        for (int i = 0; i < musicList.Length; i++)
+        {
+            GameObject cloned = Instantiate(FramePrefab, Vector3.zero, Quaternion.identity, FrameParentObject.transform);
+            cloned.name = i.ToString();
+            cloned.transform.localPosition = new Vector3(440f * (float)i, 30f, 0);
+            cloned.GetComponent<MusicFrameComponent>().SetMusicData(Difficulty, musicList[i]);
+
+            if (i == SelectedFrameNumber)
+            {
+                cloned.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
+            }
+            else
+            {
+                cloned.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
+            }
+        }
     }
 
     private string[] GetSortedMusicID(int sortmode, int difficulty)
