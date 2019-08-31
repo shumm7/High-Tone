@@ -177,9 +177,7 @@ public class GameManager : MonoBehaviour
         MaxNotesAmount = musicinfo.notes;
         Level = musicinfo.level[Difficulty];
         IsVideo = musicinfo.video;
-        Composer = musicinfo.credits.composer;
-        Lyrics = musicinfo.credits.lyrics;
-        Vocal = musicinfo.credits.vocal;
+        Composer = musicinfo.credits;
         MusicDataLoader.Notes note = GetComponent<MusicDataLoader>().getNotesData(Difficulty, MusicID);
         BPM = note.BPM;
         Offset = note.offset;

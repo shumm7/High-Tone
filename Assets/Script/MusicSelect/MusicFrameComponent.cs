@@ -35,14 +35,7 @@ public class MusicFrameComponent : MonoBehaviour
             MusicTitleUI.text = data.music;
 
             //Credits
-            string creditsText = "";
-            if (data.credits.composer != "")
-                creditsText += ("作曲 " + data.credits.composer + "     ");
-            if (data.credits.lyrics != "")
-                creditsText += ("作曲 " + data.credits.lyrics + "     ");
-            if (data.credits.vocal != "")
-                creditsText += ("歌 " + data.credits.vocal + "     ");
-            CreditsUI.text = creditsText.Remove(creditsText.LastIndexOf("     "), "     ".Length);
+            CreditsUI.text = data.credits;
 
             //Artwork
             byte[] bytes = File.ReadAllBytes("Music/" + id + "/image.png");

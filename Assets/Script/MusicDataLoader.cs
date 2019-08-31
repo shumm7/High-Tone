@@ -85,15 +85,15 @@ public class MusicDataLoader : MonoBehaviour
         public int notes;
         public int[] level;
         public bool video;
-        public MusicPropertyCredits credits;
+        public string credits;
+        public preview preview;
     }
 
     [Serializable]
-    public class MusicPropertyCredits
+    public class preview
     {
-        public string composer;
-        public string lyrics;
-        public string vocal;
+        public float start;
+        public float end;
     }
 
     public class Notes

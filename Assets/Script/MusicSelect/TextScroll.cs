@@ -16,14 +16,20 @@ public class TextScroll : MonoBehaviour
     private bool flag = false;
     private float TextWidth;
 
-    float speed = 0.5f;
+    private Sequence seq;
+
+    float speed = 10f;
 
 
-    void Awake()
+    public void Setup()
     {
         rectTran = gameObject.GetComponent<RectTransform>();
         ScrollText = gameObject.GetComponent<Text>();
         TextWidth = ScrollText.preferredWidth;
+        flag = false;
+
+        seq.Kill();
+        seq = DOTween.Sequence();
 
         if (TextWidth > 355f)
         {
@@ -33,23 +39,36 @@ public class TextScroll : MonoBehaviour
             PosBefore.x = (179 + TextWidth / 2f) + 10;
             rectTran.transform.localPosition = PosBefore;
         }
-
     }
 
-    void FixedUpdate()
+    public void KillSequence()
+    {
+        seq.Kill();
+    }
+
+    void Update()
     {
         if (!flag && isScrolling)
         {
+            flag = true;
             PosAfter = rectTran.transform.localPosition;
             PosAfter.x = - PosBefore.x;
-            flag = true;
 
-            rectTran.DOLocalMove(PosAfter, speed * (float)(ScrollText.text.Length)).SetEase(Ease.Linear);
-            DOVirtual.DelayedCall(speed * (float)(ScrollText.text.Length), () => {
-                rectTran.transform.localPosition = PosBefore;
-                flag = false;
-                }
+            float time = speed;
+            seq.Join(rectTran.DOLocalMove(PosAfter, time).SetEase(Ease.Linear));
+            seq.Join(
+                DOVirtual.DelayedCall(time, () =>
+                {
+                    if (rectTran != null)
+                    {
+                        rectTran.transform.localPosition = PosBefore;
+                    }
+                    flag = false;
+                    seq.Kill();
+                })
             );
+
+            seq.Play();
         }
 
     }
