@@ -36,14 +36,20 @@ public class MainMusicSelect : MonoBehaviour
     public Text MaxComboUI;
     public Text CategoryUI;
     public GameObject ButtonParent;
-    public int DisplayMode = 0; //0曲選択 1ゲーム設定
+    public GameObject CategoryParant;
+    public GameObject CategoryPrefab;
+    public GameObject CursorFrame;
+    public GameObject CursorCategory;
+    public static int DisplayMode = -1; //0曲選択 1ゲーム設定 //-1 カテゴリ選択
     private int AllSettings = 4;
+    private int Category = 0;
 
     //Audio
     public AudioMixer audioMixer;
     public AudioSource MusicPreview;
     private float fadeTime = 1;
     private Sequence seq;
+    private Sequence seqCategory;
     private int musicVolumePercentage;
     private int seVolumePercentage;
 
@@ -58,39 +64,116 @@ public class MainMusicSelect : MonoBehaviour
         musicList = GetComponent<MusicDataLoader>().getMusicList().music;
         categoryList = GetComponent<MusicDataLoader>().getMusicList().category;
 
-        SortedMusicList = GetSortedMusicID(SortMode, Difficulty);
-        GenerateFrame(SortedMusicList, 620);
+        SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+        GenerateFrame(SortedMusicList, 0, false);
+        FrameFade(SortedMusicList.Length, false, 0, true);
+
+        GenerateCategoryPlate(categoryList);
+        CursorFrame.SetActive(false);
+        CursorCategory.SetActive(true);
+
 
         DOVirtual.DelayedCall(0.5f, () =>
         {
-            FrameFade(SortedMusicList.Length, true, 0.25f, false);
+            FrameFade(SortedMusicList.Length, true, 0.25f, true);
         });
         DOVirtual.DelayedCall(0.75f, () =>
         {
             seq = DOTween.Sequence();
-            PlayMusicPreview(0);
-            setUI(0, 0);
+            PlayMusicPreview(SelectedFrame);
+            setUI(SelectedFrame, DisplayMode);
             flag = false;
         });
     }
 
     void Update()
     {
-        if (!flag && DisplayMode==0)
+        if (!flag && DisplayMode == -1)
+        {
+            if (Input.GetKeyDown(KeyCode.Q)) //左
+            {
+                Category = Range(Category - 1, 0, categoryList.Length - 1);
+                ScrollCategoryPlate(categoryList.Length, Category, 0.25f);
+
+                FrameFade(SortedMusicList.Length, false, 0.25f, false);
+
+                seqCategory.Complete();
+                seqCategory.Join(
+                DOVirtual.DelayedCall(0.26f, () =>
+                {
+                    KillFrame(SortedMusicList.Length);
+                    SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+                    GenerateFrame(SortedMusicList, 620f, false);
+                })
+                );
+                seqCategory.Join(
+                DOVirtual.DelayedCall(0.5f, () =>
+                {
+                    FrameFade(SortedMusicList.Length, true, 0.25f, false);
+                })
+                );
+            }
+            else if (Input.GetKeyDown(KeyCode.W)) //右
+            {
+                Category = Range(Category + 1, 0, categoryList.Length - 1);
+                ScrollCategoryPlate(categoryList.Length, Category, 0.25f);
+
+                FrameFade(SortedMusicList.Length, false, 0.25f, false);
+                seqCategory.Complete();
+                seqCategory.Join(
+                DOVirtual.DelayedCall(0.25f, () =>
+                {
+                    KillFrame(SortedMusicList.Length);
+                    SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+                    GenerateFrame(SortedMusicList, 620f, false);
+                })
+                );
+                seqCategory.Join(
+                DOVirtual.DelayedCall(0.5f, () =>
+                {
+                    FrameFade(SortedMusicList.Length, true, 0.25f, false);
+                })
+                );
+            }
+            else if (Input.GetKeyDown(KeyCode.E)) //決定
+            {
+                if (SortedMusicList.Length != 0) {
+                    flag = true;
+
+                    DisplayMode = 0;
+                    SelectedFrame = 0;
+                    FrameScroll(SortedMusicList.Length, SelectedFrame, 0.25f, true);
+                    CursorCategory.SetActive(false);
+                    CursorFrame.SetActive(true);
+                    DisplayMode = -1;
+
+                    CategoryParant.GetComponent<RectTransform>().DOLocalMoveY(-200f, 0.5f).SetEase(Ease.InOutQuart);
+                    PlayMusicPreview(SelectedFrame);
+
+                    DOVirtual.DelayedCall(0.5f, () =>
+                    {
+                        CategoryParant.SetActive(false);
+                        DisplayMode = 0;
+                        flag = false;
+                    });
+                }
+            }
+        }
+        else if (!flag && DisplayMode==0)
         {
             if (Input.GetKeyDown(KeyCode.Q)) //左
             {
                 SelectedFrame--;
                 SelectedFrame = Range(SelectedFrame, 0, SortedMusicList.Length - 1);
                 PlayMusicPreview(SelectedFrame);
-                FrameScroll(SortedMusicList.Length, SelectedFrame, 0.2f);
+                FrameScroll(SortedMusicList.Length, SelectedFrame, 0.2f, true);
             }
             else if (Input.GetKeyDown(KeyCode.W)) //右
             {
                 SelectedFrame++;
                 SelectedFrame = Range(SelectedFrame, 0, SortedMusicList.Length - 1);
                 PlayMusicPreview(SelectedFrame);
-                FrameScroll(SortedMusicList.Length, SelectedFrame, 0.2f);
+                FrameScroll(SortedMusicList.Length, SelectedFrame, 0.2f, true);
             }
             else if (Input.GetKeyUp(KeyCode.E)) //決定
             {
@@ -117,7 +200,7 @@ public class MainMusicSelect : MonoBehaviour
                 DataHolder.NextMusicID = SortedMusicList[SelectedFrame];
                 DataHolder.TemporaryIntNumber = SelectedFrame;
                 SelectedFrame = 0;
-                FrameScroll(AllSettings, SelectedFrame, 0);
+                FrameScroll(AllSettings, SelectedFrame, 0, true);
 
                 DOVirtual.DelayedCall(1f, () =>
                 {
@@ -144,12 +227,12 @@ public class MainMusicSelect : MonoBehaviour
                     {
                         MusicPreview.Stop();
                         KillFrame(SortedMusicList.Length);
-                        while(GetSortedMusicID(SortMode, Difficulty).Length == 0)
+                        while(GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id).Length == 0)
                         {
                             Difficulty = Range(++Difficulty, 0, 4);
                         }
-                        SortedMusicList = GetSortedMusicID(SortMode, Difficulty);
-                        GenerateFrame(SortedMusicList, 620f);
+                        SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+                        GenerateFrame(SortedMusicList, 620f, true);
                     })
                 );
                 Fade.Insert(time * 2,
@@ -172,7 +255,22 @@ public class MainMusicSelect : MonoBehaviour
             }
             else if (Input.GetKeyUp(KeyCode.T)) //カテゴリ
             {
-                SortMode = Range(++SortMode, 0, 2);
+                FrameScroll(SortedMusicList.Length, SelectedFrame, 0.25f, false);
+                CursorCategory.SetActive(true);
+                CursorFrame.SetActive(false);
+
+                CategoryParant.GetComponent<RectTransform>().DOLocalMoveY(0, 0.5f).SetEase(Ease.InOutQuart);
+                CategoryParant.SetActive(true);
+                setUI(Category, -1);
+
+                DOVirtual.DelayedCall(0.5f, () =>
+                {
+                    DisplayMode = -1;
+                });
+
+                /* ソート切り替え
+                
+                SortMode = Range(++SortMode, 0, 1);
                 flag = true;
                 float time = 0.25f;
 
@@ -185,8 +283,8 @@ public class MainMusicSelect : MonoBehaviour
                     {
                         MusicPreview.Stop();
                         KillFrame(SortedMusicList.Length);
-                        SortedMusicList = GetSortedMusicID(SortMode, Difficulty);
-                        GenerateFrame(SortedMusicList, 620f);
+                        SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+                        GenerateFrame(SortedMusicList, 620f, true);
                     })
                 );
                 Fade.Insert(time * 2,
@@ -207,6 +305,7 @@ public class MainMusicSelect : MonoBehaviour
                 );
 
                 Fade.Play();
+                */
             }
         }
         else if(!flag && DisplayMode == 1)
@@ -217,7 +316,7 @@ public class MainMusicSelect : MonoBehaviour
                 SelectedFrame = Range(SelectedFrame, 0, AllSettings - 1);
                 setUI(SelectedFrame, DisplayMode);
 
-                FrameScroll(AllSettings, SelectedFrame, 0.2f);
+                FrameScroll(AllSettings, SelectedFrame, 0.2f, true);
             }
             else if (Input.GetKeyDown(KeyCode.W))
             {
@@ -225,7 +324,7 @@ public class MainMusicSelect : MonoBehaviour
                 SelectedFrame = Range(SelectedFrame, 0, AllSettings - 1);
                 setUI(SelectedFrame, DisplayMode);
 
-                FrameScroll(AllSettings, SelectedFrame, 0.2f);
+                FrameScroll(AllSettings, SelectedFrame, 0.2f, true);
             }
             else if (Input.GetKeyDown(KeyCode.E))
             {
@@ -299,7 +398,18 @@ public class MainMusicSelect : MonoBehaviour
 
     public void setUI(int selection, int mode)
     {
-        if (mode == 0)
+        
+        if (mode == -1)
+        {
+            GetButtonUI(3).text = "決定";
+            GetButtonUI(4).text = "";
+            GetButtonUI(5).text = "";
+
+            CategoryUI.text = categoryList[selection].name;
+            MaxScoreUI.text = "";
+            MaxComboUI.text = "";
+        }
+        else if (mode == 0)
         {
             string sortmodeName = null;
 
@@ -308,16 +418,14 @@ public class MainMusicSelect : MonoBehaviour
                 case Sortmode.Lexicon:
                     sortmodeName = "曲名順";
                     break;
-                case Sortmode.Category:
-                    sortmodeName = "カテゴリ";
-                    break;
                 case Sortmode.ListJson:
                     sortmodeName = "登録順";
                     break;
             }
             GetButtonUI(3).text = "決定";
             GetButtonUI(4).text = "難易度  ▲";
-            GetButtonUI(5).text = sortmodeName;
+            GetButtonUI(5).text = "戻る";
+            //GetButtonUI(5).text = sortmodeName;
 
             int num = FindMusicNumber(SortedMusicList[selection]);
             CategoryUI.text = GetCategoryName(musicList[num].category);
@@ -345,7 +453,7 @@ public class MainMusicSelect : MonoBehaviour
         }
     }
 
-    private void FrameScroll(int MaxFrameAmount, int selection, float time)
+    private void FrameScroll(int MaxFrameAmount, int selection, float time, bool focusSelectedFrame)
     {
             Sequence sequence = DOTween.Sequence();
             isScreenScrolling = true;
@@ -370,10 +478,19 @@ public class MainMusicSelect : MonoBehaviour
                 }
                 else
                 {
-                    sequence.Join(
-                        rectTran.DOScale(new Vector3(0.9f, 0.9f, 1f), time).SetEase(Ease.InOutQuart)
-                    );
-                }
+                    if (focusSelectedFrame)
+                    {
+                        sequence.Join(
+                            rectTran.DOScale(new Vector3(0.9f, 0.9f, 1f), time).SetEase(Ease.InOutQuart)
+                        );
+                    }
+                    else
+                    {
+                        sequence.Join(
+                            rectTran.DOScale(new Vector3(0.6f, 0.6f, 1f), time).SetEase(Ease.InOutQuart)
+                        );
+                    }
+                 }
 
                 sequence.Join(
                     DOVirtual.DelayedCall(time, () =>
@@ -395,7 +512,7 @@ public class MainMusicSelect : MonoBehaviour
         { //画面外へ
             if (UIfade)
             {
-                if (DisplayMode == 0)
+                if (DisplayMode == 0 || DisplayMode == -1)
                 {
                     RectTransform rectTran = MainDisplay.GetComponent<RectTransform>();
                     Vector3 pos = rectTran.localPosition;
@@ -425,7 +542,7 @@ public class MainMusicSelect : MonoBehaviour
                 {
                     RectTransform rectTran = FrameParentObject.transform.Find(i.ToString()).GetComponent<RectTransform>();
                     Vector3 pos = rectTran.localPosition;
-                    pos.y += 620;
+                    pos.y = 650;
                     fade.Join(rectTran.DOLocalMove(pos, time).SetEase(Ease.InExpo));
                 }
             }
@@ -434,7 +551,7 @@ public class MainMusicSelect : MonoBehaviour
         {
             if (UIfade)
             {
-                if (DisplayMode == 0)
+                if (DisplayMode == 0 || DisplayMode==-1)
                 {
                     MainDisplay.SetActive(true);
                     RectTransform rectTran = MainDisplay.GetComponent<RectTransform>();
@@ -457,7 +574,7 @@ public class MainMusicSelect : MonoBehaviour
                 {
                     RectTransform rectTran = FrameParentObject.transform.Find(i.ToString()).GetComponent<RectTransform>();
                     Vector3 pos = rectTran.localPosition;
-                    pos.y -= 620;
+                    pos.y = 30;
                     fade.Join(rectTran.DOLocalMove(pos, time).SetEase(Ease.OutExpo));
                 }
             }
@@ -486,7 +603,7 @@ public class MainMusicSelect : MonoBehaviour
         return val;
     }
 
-    private void GenerateFrame(string[] musicList, float posYoffset)
+    private void GenerateFrame(string[] musicList, float posYoffset, bool focusSelectedFrame)
     {
         for (int i = 0; i < musicList.Length; i++)
         {
@@ -498,15 +615,58 @@ public class MainMusicSelect : MonoBehaviour
             cloned.transform.Find("Credits Text Mask").transform.Find("Credits").GetComponent<TextScroll>().Setup();
 
 
-            if (i == SelectedFrameNumber)
+            if (focusSelectedFrame)
             {
-                cloned.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
+                if (i == SelectedFrameNumber)
+                {
+                    cloned.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
+                }
+                else
+                {
+                    cloned.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
+                }
             }
             else
             {
                 cloned.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
             }
         }
+    }
+
+    private void GenerateCategoryPlate(MusicDataLoader.Category[] categoryList)
+    {
+        for (int i = 0; i < categoryList.Length; i++)
+        {
+            GameObject cloned = Instantiate(CategoryPrefab, Vector3.zero, Quaternion.identity, CategoryParant.transform);
+            cloned.name = i.ToString();
+            cloned.transform.localPosition = new Vector3(300 * (float)i, -220f, 0);
+            cloned.transform.Find("Text").GetComponent<Text>().text = categoryList[i].name;
+        }
+    }
+
+    private void ScrollCategoryPlate(int MaxCategoryAmount, int selection, float time)
+    {
+        Sequence sequence = DOTween.Sequence();
+        isScreenScrolling = true;
+
+        for (int i = 0; i < MaxCategoryAmount; i++)
+        {
+            RectTransform rectTran = null;
+            if (DisplayMode == -1)
+            {
+                rectTran = CategoryParant.transform.Find(i.ToString()).GetComponent<RectTransform>();
+                sequence.Join(rectTran.DOLocalMove(new Vector3(300f * (float)(i - selection), -220f, 0), time));
+
+                sequence.Join(
+                    DOVirtual.DelayedCall(time, () =>
+                    {
+                        isScreenScrolling = false;
+                    })
+                );
+            }
+        }
+
+        setUI(selection, DisplayMode);
     }
 
     private void KillFrame(int MaxFrameAmount)
@@ -519,11 +679,11 @@ public class MainMusicSelect : MonoBehaviour
         }
     }
 
-    private string[] GetSortedMusicID(int sortmode, int difficulty)
+    private string[] GetSortedMusicID(int sortmode, int difficulty, string category)
     {
-        int MusicAmount = musicList.Length;
-
         MusicDataLoader.MusicList[] TempMusicList = new MusicDataLoader.MusicList[0];
+        string[] ReturnListCat = new string[0];
+        int MusicAmount = musicList.Length;
 
         if (difficulty == -1) //難易度関係なくソート
         {
@@ -542,66 +702,46 @@ public class MainMusicSelect : MonoBehaviour
             }
         }
 
+        string[] temp = new string[0];
+        if (category == "all")
+        {
+            for (int j = 0; j < TempMusicList.Length; j++)
+            {
+                temp = temp.Concat(new string[] { TempMusicList[j].id }).ToArray();
+            }
+        }
+        else
+        {
+            for (int j = 0; j < TempMusicList.Length; j++)
+            {
+                if (TempMusicList[j].category == category)
+                {
+                    temp = temp.Concat(new string[] { TempMusicList[j].id }).ToArray();
+                }
+            }
+        }
+
 
         //JSONデータに記載順
-        if(sortmode == Sortmode.ListJson)
+        if (sortmode == Sortmode.ListJson)
         {
-            string[] ret = new string[TempMusicList.Length];
-
-            for (int i = 0; i < TempMusicList.Length; i++)
-                ret[i] = TempMusicList[i].id;
-
-            return ret;
+            return temp;
         }
 
         //辞書順（あいうえお順）
         else if(sortmode == Sortmode.Lexicon)
         {
-            string[] ret = new string[TempMusicList.Length];
+            string[] ret = new string[temp.Length];
 
-            for (int i = 0; i < TempMusicList.Length; i++)
-                ret[i] = GetComponent<MusicDataLoader>().getMusicProperty(TempMusicList[i].id).music + ":MusicID:" + TempMusicList[i].id;
+            for (int i = 0; i < temp.Length; i++)
+                ret[i] = GetComponent<MusicDataLoader>().getMusicProperty(temp[i]).music + ":MusicID:" + temp[i];
             ret = ret.OrderBy(c => c, new NaturalComparer()).ToArray();
 
             string[] del = { ":MusicID:" };
-            for (int i = 0; i < TempMusicList.Length; i++)
+            for (int i = 0; i < temp.Length; i++)
                 ret[i] = ret[i].Split(del, StringSplitOptions.None)[1];
 
             return ret;
-        }
-
-        //カテゴリ順（各カテゴリ内は辞書順）
-        else if(sortmode == Sortmode.Category)
-        {
-            string[] ReturnListCat = new string[0];
-
-            for(int i=0; i<categoryList.Length; i++)
-            {
-                string[] temp = new string[0];
-
-                for (int j = 0; j < TempMusicList.Length; j++)
-                {
-                    if(TempMusicList[j].category == categoryList[i].id)
-                    {
-                        temp = temp.Concat( new string[] { TempMusicList[j].id} ).ToArray();
-                    }
-                }
-
-                for (int j = 0; j < temp.Length; j++)
-                    temp[j] = GetComponent<MusicDataLoader>().getMusicProperty(temp[j]).music + ":MusicID:" + temp[j];
-
-                temp = temp.OrderBy(c => c, new NaturalComparer()).ToArray();
-
-                string[] del = { ":MusicID:" };
-                for (int j = 0; j < temp.Length; j++)
-                {
-                    temp[j] = temp[j].Split(del, StringSplitOptions.None)[1];
-                }
-
-                ReturnListCat = ReturnListCat.Concat(temp).ToArray();
-            }
-
-            return ReturnListCat;
         }
         else
         {
@@ -707,8 +847,7 @@ public class MainMusicSelect : MonoBehaviour
     private class Sortmode
     {
         public const int Lexicon = 0;
-        public const int Category = 1;
-        public const int ListJson = 2;
+        public const int ListJson = 1;
     }
 
 
