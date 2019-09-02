@@ -831,6 +831,7 @@ MonoBehaviour:
   CategoryUI: {fileID: 53595392}
   ButtonParent: {fileID: 52984503}
   DisplayMode: 0
+  audioMixer: {fileID: 24100000, guid: e12172fd72ce1a24ba9d3584c8d20505, type: 2}
   MusicPreview: {fileID: 165703542}
 --- !u!4 &165703540
 Transform:
@@ -867,7 +868,7 @@ AudioSource:
   m_GameObject: {fileID: 165703538}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 5463163151351447230, guid: e12172fd72ce1a24ba9d3584c8d20505,
+  OutputAudioMixerGroup: {fileID: -7738287370299977411, guid: e12172fd72ce1a24ba9d3584c8d20505,
     type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
@@ -3592,6 +3593,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1849978619367428875, guid: 7df5ab1320dacae4099f1d43da823e6c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1849978619367428874, guid: 7df5ab1320dacae4099f1d43da823e6c,
         type: 3}

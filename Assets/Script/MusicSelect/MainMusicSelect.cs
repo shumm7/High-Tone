@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Audio;
 using UnityEngine.Networking;
 using DG.Tweening;
 
@@ -17,6 +18,7 @@ public class MainMusicSelect : MonoBehaviour
 
     public static int SelectedFrame = 0;
     private bool isScreenScrolling = false;
+    private int tempDifficulty;
 
     //Display
     public GameObject MainDisplay;
@@ -38,13 +40,17 @@ public class MainMusicSelect : MonoBehaviour
     private int AllSettings = 4;
 
     //Audio
+    public AudioMixer audioMixer;
     public AudioSource MusicPreview;
     private float fadeTime = 1;
     private Sequence seq;
+    private int musicVolumePercentage;
+    private int seVolumePercentage;
 
     //List
     private MusicDataLoader.MusicList[] musicList;
     private MusicDataLoader.Category[] categoryList;
+
 
     void Start()
     {
@@ -91,13 +97,23 @@ public class MainMusicSelect : MonoBehaviour
                 flag = true;
                 FrameFade(SortedMusicList.Length, false, 0.5f, true);
                 DisplayMode = 1;
-
                 SettingDisplay.SetActive(true);
+
+                //フレーム設定
                 GameObject frame = FrameParentSettingDisplayObject.transform.Find("0").gameObject;
                 frame.GetComponent<MusicFrameComponent>().SetMusicData(Difficulty, SortedMusicList[SelectedFrame]);
                 frame.transform.Find("Title Text Mask").transform.Find("Title").GetComponent<TextScroll>().Setup();
                 frame.transform.Find("Credits Text Mask").transform.Find("Credits").GetComponent<TextScroll>().Setup();
 
+                //オプション値設定
+                GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
+                musicVolumePercentage = (int)(GetGain(DataHolder.MusicVolume) * 100f);
+                GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
+                seVolumePercentage = (int)(GetGain(DataHolder.SEVolume) * 100f);
+                GetSettingFrameText(2).text = seVolumePercentage.ToString() + " %";
+                tempDifficulty = Difficulty;
+
+                //画面遷移
                 DataHolder.NextMusicID = SortedMusicList[SelectedFrame];
                 DataHolder.TemporaryIntNumber = SelectedFrame;
                 SelectedFrame = 0;
@@ -218,10 +234,20 @@ public class MainMusicSelect : MonoBehaviour
                     case 0: //決定
                         break;
                     case 1: //スピードダウン
+                        DataHolder.NoteSpeed = RangeNoOver((int)(DataHolder.NoteSpeed - 1), 5, 25);
+                        GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
                         break;
                     case 2: //Music ダウン
+                        musicVolumePercentage = RangeNoOver(musicVolumePercentage - 10, 0, 100);
+                        DataHolder.MusicVolume = GetdB(musicVolumePercentage);
+                        GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
+                        audioMixer.SetFloat("Music", DataHolder.MusicVolume);
                         break;
                     case 3: //SE ダウン
+                        seVolumePercentage = RangeNoOver(seVolumePercentage - 10, 0, 100);
+                        DataHolder.SEVolume = GetdB(seVolumePercentage);
+                        GetSettingFrameText(3).text = seVolumePercentage.ToString() + " %";
+                        audioMixer.SetFloat("SE", DataHolder.SEVolume);
                         break;
                 }
             }
@@ -230,12 +256,24 @@ public class MainMusicSelect : MonoBehaviour
                 switch (SelectedFrame)
                 {
                     case 0: //難易度アップ
+                        tempDifficulty++;
+                        FrameParentSettingDisplayObject.transform.Find("0").GetComponent<MusicFrameComponent>().SetMusicData(tempDifficulty, SortedMusicList[DataHolder.TemporaryIntNumber]);
                         break;
                     case 1: //スピードアップ
+                        DataHolder.NoteSpeed = RangeNoOver((int)(DataHolder.NoteSpeed + 1), 5, 25);
+                        GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
                         break;
                     case 2: //Music アップ
+                        musicVolumePercentage = RangeNoOver(musicVolumePercentage + 10, 0, 100);
+                        DataHolder.MusicVolume = GetdB(musicVolumePercentage);
+                        GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
+                        audioMixer.SetFloat("Music", DataHolder.MusicVolume);
                         break;
                     case 3: //SEアップ
+                        seVolumePercentage = RangeNoOver(seVolumePercentage + 10, 0, 100);
+                        DataHolder.SEVolume = GetdB(seVolumePercentage);
+                        GetSettingFrameText(3).text = seVolumePercentage.ToString() + " %";
+                        audioMixer.SetFloat("SE", DataHolder.SEVolume);
                         break;
                 }
             }
@@ -438,6 +476,16 @@ public class MainMusicSelect : MonoBehaviour
         return val;
     }
 
+    private int RangeNoOver(int val, int min, int max)
+    {
+        if (val > max)
+            val = max;
+        if (val < min)
+            val = min;
+
+        return val;
+    }
+
     private void GenerateFrame(string[] musicList, float posYoffset)
     {
         for (int i = 0; i < musicList.Length; i++)
@@ -619,6 +667,11 @@ public class MainMusicSelect : MonoBehaviour
         return ButtonParent.transform.Find("Button" + num.ToString()).Find("Text").GetComponent<Text>();
     }
 
+    private Text GetSettingFrameText(int num)
+    {
+        return FrameParentSettingDisplayObject.transform.Find(num.ToString()).Find("Setting").Find("Value").GetComponent<Text>();
+    }
+
     private float GetdB(float Gain)
     {
         float dB = (float)(20f * Math.Log(Gain * 0.01f, 10));
@@ -627,7 +680,7 @@ public class MainMusicSelect : MonoBehaviour
         return dB;
     }
 
-    private float GetGaindB(float dB)
+    private float GetGain(float dB)
     {
         return (float)Math.Pow(10, (double)(dB / 20f));
     }
@@ -657,5 +710,6 @@ public class MainMusicSelect : MonoBehaviour
         public const int Category = 1;
         public const int ListJson = 2;
     }
+
 
 }

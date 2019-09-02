@@ -16,7 +16,7 @@ public class TextScroll : MonoBehaviour
     private bool flag = false;
     private float TextWidth;
 
-    private Sequence seq;
+    public Sequence seq;
 
     float speed = 10f;
 
@@ -28,8 +28,14 @@ public class TextScroll : MonoBehaviour
         TextWidth = ScrollText.preferredWidth;
         flag = false;
 
+        isScrolling = false;
+        PosBefore = rectTran.transform.localPosition;
+        PosBefore.x = 0;
+        rectTran.transform.localPosition = PosBefore;
+
         seq.Kill();
         seq = DOTween.Sequence();
+        
 
         if (TextWidth > 355f)
         {
@@ -38,38 +44,25 @@ public class TextScroll : MonoBehaviour
             PosBefore = rectTran.transform.localPosition;
             PosBefore.x = (179 + TextWidth / 2f) + 10;
             rectTran.transform.localPosition = PosBefore;
+            PosAfter.x = -PosBefore.x;
+
+            float time = speed;
+            seq.OnComplete(() => SeqOnComplete());
+            seq.Join(rectTran.DOLocalMove(PosAfter, time).SetEase(Ease.Linear));
+
+            seq.Play();
         }
+    }
+
+    public void SeqOnComplete()
+    {
+        seq.Restart();
+        //seq.Pause();
+        rectTran.transform.localPosition = PosBefore;
     }
 
     public void KillSequence()
     {
         seq.Kill();
-    }
-
-    void Update()
-    {
-        if (!flag && isScrolling)
-        {
-            flag = true;
-            PosAfter = rectTran.transform.localPosition;
-            PosAfter.x = - PosBefore.x;
-
-            float time = speed;
-            seq.Join(rectTran.DOLocalMove(PosAfter, time).SetEase(Ease.Linear));
-            seq.Join(
-                DOVirtual.DelayedCall(time, () =>
-                {
-                    if (rectTran != null)
-                    {
-                        rectTran.transform.localPosition = PosBefore;
-                    }
-                    flag = false;
-                    seq.Kill();
-                })
-            );
-
-            seq.Play();
-        }
-
     }
 }

@@ -6,7 +6,7 @@ public class DataHolder : MonoBehaviour
 {
     //ユーザー情報
     public static string UserID = "Guest";
-    public static float NoteSpeed = 10;
+    public static float NoteSpeed = 10; //5 - 25
     public static float MusicVolume = -20;
     public static float SEVolume = -20;
 
