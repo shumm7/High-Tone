@@ -527,13 +527,13 @@ public class MainMusicSelect : MonoBehaviour
                     case 3: //Music アップ
                         musicVolumePercentage = RangeNoOver(musicVolumePercentage + 10, 0, 100);
                         DataHolder.MusicVolume = GetdB(musicVolumePercentage);
-                        GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
+                        GetSettingFrameText(3).text = musicVolumePercentage.ToString() + " %";
                         audioMixer.SetFloat("Music", DataHolder.MusicVolume);
                         break;
                     case 4: //SEアップ
                         seVolumePercentage = RangeNoOver(seVolumePercentage + 10, 0, 100);
                         DataHolder.SEVolume = GetdB(seVolumePercentage);
-                        GetSettingFrameText(3).text = seVolumePercentage.ToString() + " %";
+                        GetSettingFrameText(4).text = seVolumePercentage.ToString() + " %";
                         audioMixer.SetFloat("SE", DataHolder.SEVolume);
                         break;
                 }

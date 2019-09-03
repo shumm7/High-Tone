@@ -16,6 +16,7 @@ public class DataHolder : MonoBehaviour
     public static double GlobalNoteOffset = 0.03;
     public static int Difficulty = 0;
     public static bool DebugMode = false;
+    public static string VideoSettingMode = "cut"; //cut, fit
 
     //スコア
     public static int Score = 0;

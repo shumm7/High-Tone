@@ -259,39 +259,73 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (!DebugMode)
+        {
+            Vector3 temp = rawImage.transform.localPosition;
+            if (DataHolder.VideoSettingMode == "cut")
+            {
+                temp.z = 260;
+                rawImage.transform.localPosition = temp;
+            }
+            else if (DataHolder.VideoSettingMode == "fit")
+            {
+                temp.z = 360;
+                rawImage.transform.localPosition = temp;
+            }
+        }
+        else
+        {
+            string VideoSettingMode = "cut";
+            Vector3 temp = rawImage.transform.localPosition;
+            if (VideoSettingMode == "cut")
+            {
+                temp.z = 260;
+                rawImage.transform.localPosition = temp;
+            }
+            else if (VideoSettingMode == "fit")
+            {
+                temp.z = 360;
+                rawImage.transform.localPosition = temp;
+            }
+        }
+
         //音楽の設定
         DebugLog("音楽の設定中");
         string path = "Music/" + MusicID + "/music.wav";
         StartCoroutine(GetAudioClip(path));
 
         //画面の遷移
-        float timeDelay = 0.5f;
-        GameObject[] changer = new GameObject[4];
-        RectTransform[] rectTran = new RectTransform[4];
-
-        for (int i = 0; i < 4; i++)
+        if (!DebugMode)
         {
-            changer[i] = SceneChange.transform.Find(Difficulty.ToString()).Find(i.ToString()).gameObject;
-            rectTran[i] = changer[i].GetComponent<RectTransform>();
-        }
+            float timeDelay = 0.5f;
+            GameObject[] changer = new GameObject[4];
+            RectTransform[] rectTran = new RectTransform[4];
 
-        Sequence sceneChangeTween = DOTween.Sequence();
-        for (int i = 0; i < 4; i++)
-        {
-            sceneChangeTween.Insert(1 + 0.25f * (3 - i),
-                rectTran[i].DOLocalMoveX(-1280, timeDelay).SetEase(Ease.OutQuint)
+            for (int i = 0; i < 4; i++)
+            {
+                changer[i] = SceneChange.transform.Find(Difficulty.ToString()).Find(i.ToString()).gameObject;
+                rectTran[i] = changer[i].GetComponent<RectTransform>();
+            }
+
+            Sequence sceneChangeTween = DOTween.Sequence();
+            for (int i = 0; i < 4; i++)
+            {
+                sceneChangeTween.Insert(1 + 0.25f * (3 - i),
+                    rectTran[i].DOLocalMoveX(-1280, timeDelay).SetEase(Ease.OutQuint)
+                );
+            }
+
+            sceneChangeTween.Join(
+                DOVirtual.DelayedCall(4f, () =>
+                {
+                    Destroy(SceneChange);
+                })
             );
+
+            sceneChangeTween.Play();
         }
-
-        sceneChangeTween.Join(
-            DOVirtual.DelayedCall(4f, () => {
-                Destroy(SceneChange);
-            })
-        );
-
-        sceneChangeTween.Play();
-
         yield return new WaitForSeconds(4);
+      
 
         //音楽の再生
         TimeComponent.SetStartTime();

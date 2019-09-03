@@ -1697,6 +1697,7 @@ MonoBehaviour:
   ScoreText: {fileID: 1437259814}
   ComboText: {fileID: 17585816}
   LevelText: {fileID: 1868189143}
+  SceneChange: {fileID: 0}
   FadeInTime: 3
   FadeInUIColor:
   - 55
@@ -3250,7 +3251,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -11.099915, y: -65.600006}
+  m_AnchoredPosition: {x: -11.0998535, y: -65.599976}
   m_SizeDelta: {x: 400, y: 20}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1852732643

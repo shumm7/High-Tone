@@ -12,8 +12,6 @@ public class TextScroll : MonoBehaviour
     private RectTransform rectTran;
     private Vector3 PosBefore;
     private Vector3 PosAfter;
-    private bool isScrolling = false;
-    private bool flag = false;
     private float TextWidth;
 
     public Sequence seq;
@@ -26,9 +24,7 @@ public class TextScroll : MonoBehaviour
         rectTran = gameObject.GetComponent<RectTransform>();
         ScrollText = gameObject.GetComponent<Text>();
         TextWidth = ScrollText.preferredWidth;
-        flag = false;
 
-        isScrolling = false;
         PosBefore = rectTran.transform.localPosition;
         PosBefore.x = 0;
         rectTran.transform.localPosition = PosBefore;
@@ -39,8 +35,6 @@ public class TextScroll : MonoBehaviour
 
         if (TextWidth > 355f)
         {
-            isScrolling = true;
-
             PosBefore = rectTran.transform.localPosition;
             PosBefore.x = (179 + TextWidth / 2f) + 10;
             rectTran.transform.localPosition = PosBefore;
