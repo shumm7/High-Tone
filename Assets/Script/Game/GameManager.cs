@@ -88,11 +88,17 @@ public class GameManager : MonoBehaviour
         SceneChange = GameObject.Find("Scene Change");
 
         //Video用RawImage初期化
-        rawImage.SetActive(false);
+        rawImage.SetActive(true);
+        videoPlayer = rawImage.GetComponent<VideoPlayer>();
         Color col = rawImage.GetComponent<RawImage>().color;
         col.a = 1f;
         rawImage.GetComponent<RawImage>().color = col;
         renderTexture.Release();
+
+        //初期映像再生
+        videoPlayer.url = DefaultVideoClip.originalPath;
+        videoPlayer.source = VideoSource.Url;
+        videoPlayer.Play();
 
         //到着時間
         NoteSpeed = speed;
@@ -165,6 +171,8 @@ public class GameManager : MonoBehaviour
         {
             MusicID = DataHolder.NextMusicID;
             Difficulty = DataHolder.Difficulty;
+            PlayVideo = DataHolder.isVideo;
+            GlobalOffset = DataHolder.GlobalNoteOffset;
         }
         else
         {
@@ -179,7 +187,6 @@ public class GameManager : MonoBehaviour
         MusicName = musicinfo.music;
         MaxNotesAmount = musicinfo.notes;
         Level = musicinfo.level[Difficulty];
-        IsVideo = musicinfo.video;
         Composer = musicinfo.credits;
         MusicDataLoader.Notes note = GetComponent<MusicDataLoader>().getNotesData(Difficulty, MusicID);
         BPM = note.BPM;
@@ -238,7 +245,6 @@ public class GameManager : MonoBehaviour
 
         //ビデオの設定
         DebugLog("ビデオの設定中");
-        videoPlayer = rawImage.GetComponent<VideoPlayer>();
         if (PlayVideo)
         {
             string videoPath = Directory.GetCurrentDirectory() + "/" + "Music/" + MusicID + "/video.mp4";
@@ -249,8 +255,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                videoPlayer.url = DefaultVideoClip.originalPath;
-                videoPlayer.source = VideoSource.Url;
+                PlayVideo = false;
             }
         }
 
@@ -293,7 +298,6 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(MusicStartTimeOffset);
         DebugLog("音楽を再生しました");
         audioSource.Play();
-        rawImage.SetActive(true);
         if(PlayVideo)
             videoPlayer.Play();
 

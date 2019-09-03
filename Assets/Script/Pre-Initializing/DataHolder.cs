@@ -12,14 +12,14 @@ public class DataHolder : MonoBehaviour
 
     //ゲームプレイ
     public static string NextMusicID;
-    public static bool isVideo;
-    public static double GlobalNoteOffset;
-    public static int Difficulty;
-    public static bool DebugMode;
+    public static bool isVideo = true;
+    public static double GlobalNoteOffset = 0.03;
+    public static int Difficulty = 0;
+    public static bool DebugMode = false;
 
     //スコア
     public static int Score = 0;
-    public static int ObjectiveScore;
+    public static int ObjectiveScore = 0;
     public static int MaximumScore;
     public static float ScorePercentage;
     public static int Combo = 0;

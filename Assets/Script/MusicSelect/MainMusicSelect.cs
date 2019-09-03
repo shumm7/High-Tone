@@ -40,7 +40,7 @@ public class MainMusicSelect : MonoBehaviour
     public GameObject CursorFrame;
     public GameObject CursorCategory;
     public static int DisplayMode = -1; //0曲選択 1ゲーム設定 //-1 カテゴリ選択
-    private int AllSettings = 4;
+    private int AllSettings = 5;
     private int Category = 0;
 
     //Audio
@@ -295,16 +295,28 @@ public class MainMusicSelect : MonoBehaviour
                 frame.transform.Find("Credits Text Mask").transform.Find("Credits").GetComponent<TextScroll>().Setup();
 
                 //オプション値設定
-                GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
-                musicVolumePercentage = (int)(GetGain(DataHolder.MusicVolume) * 100f);
-                GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
-                seVolumePercentage = (int)(GetGain(DataHolder.SEVolume) * 100f);
-                GetSettingFrameText(2).text = seVolumePercentage.ToString() + " %";
-                tempDifficulty = Difficulty;
-
-                //画面遷移
                 DataHolder.NextMusicID = SortedMusicList[SelectedFrame];
                 DataHolder.TemporaryIntNumber = SelectedFrame;
+
+                GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
+                musicVolumePercentage = (int)(GetGain(DataHolder.MusicVolume) * 100f);
+                GetSettingFrameText(3).text = musicVolumePercentage.ToString() + " %";
+                seVolumePercentage = (int)(GetGain(DataHolder.SEVolume) * 100f);
+                GetSettingFrameText(4).text = seVolumePercentage.ToString() + " %";
+                tempDifficulty = Difficulty;
+
+                if (GetComponent<MusicDataLoader>().getMusicProperty(DataHolder.NextMusicID).video)
+                {
+                    DataHolder.isVideo = true;
+                    GetSettingFrameText(2).text = "ON";
+                }
+                else
+                {
+                    DataHolder.isVideo = false;
+                    GetSettingFrameText(2).text = "無効";
+                }
+
+                //画面遷移
                 SelectedFrame = 0;
                 FrameScroll(AllSettings, SelectedFrame, 0, true);
 
@@ -448,16 +460,35 @@ public class MainMusicSelect : MonoBehaviour
                         DataHolder.NoteSpeed = RangeNoOver((int)(DataHolder.NoteSpeed - 1), 5, 25);
                         GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
                         break;
-                    case 2: //Music ダウン
+                    case 2:
+                        if (GetComponent<MusicDataLoader>().getMusicProperty(DataHolder.NextMusicID).video)
+                        {
+                            DataHolder.isVideo = !DataHolder.isVideo;
+                            if (DataHolder.isVideo)
+                            {
+                                GetSettingFrameText(2).text = "ON";
+                            }
+                            else
+                            {
+                                GetSettingFrameText(2).text = "OFF";
+                            }
+                        }
+                        else
+                        {
+                            GetSettingFrameText(2).text = "無効";
+                            DataHolder.isVideo = false;
+                        }
+                        break;
+                    case 3: //Music ダウン
                         musicVolumePercentage = RangeNoOver(musicVolumePercentage - 10, 0, 100);
                         DataHolder.MusicVolume = GetdB(musicVolumePercentage);
-                        GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
+                        GetSettingFrameText(3).text = musicVolumePercentage.ToString() + " %";
                         audioMixer.SetFloat("Music", DataHolder.MusicVolume);
                         break;
-                    case 3: //SE ダウン
+                    case 4: //SE ダウン
                         seVolumePercentage = RangeNoOver(seVolumePercentage - 10, 0, 100);
                         DataHolder.SEVolume = GetdB(seVolumePercentage);
-                        GetSettingFrameText(3).text = seVolumePercentage.ToString() + " %";
+                        GetSettingFrameText(4).text = seVolumePercentage.ToString() + " %";
                         audioMixer.SetFloat("SE", DataHolder.SEVolume);
                         break;
                 }
@@ -474,13 +505,32 @@ public class MainMusicSelect : MonoBehaviour
                         DataHolder.NoteSpeed = RangeNoOver((int)(DataHolder.NoteSpeed + 1), 5, 25);
                         GetSettingFrameText(1).text = DataHolder.NoteSpeed.ToString();
                         break;
-                    case 2: //Music アップ
+                    case 2:
+                        if (GetComponent<MusicDataLoader>().getMusicProperty(DataHolder.NextMusicID).video)
+                        {
+                            DataHolder.isVideo = !DataHolder.isVideo;
+                            if (DataHolder.isVideo)
+                            {
+                                GetSettingFrameText(2).text = "ON";
+                            }
+                            else
+                            {
+                                GetSettingFrameText(2).text = "OFF";
+                            }
+                        }
+                        else
+                        {
+                            GetSettingFrameText(2).text = "無効";
+                            DataHolder.isVideo = false;
+                        }
+                        break;
+                    case 3: //Music アップ
                         musicVolumePercentage = RangeNoOver(musicVolumePercentage + 10, 0, 100);
                         DataHolder.MusicVolume = GetdB(musicVolumePercentage);
                         GetSettingFrameText(2).text = musicVolumePercentage.ToString() + " %";
                         audioMixer.SetFloat("Music", DataHolder.MusicVolume);
                         break;
-                    case 3: //SEアップ
+                    case 4: //SEアップ
                         seVolumePercentage = RangeNoOver(seVolumePercentage + 10, 0, 100);
                         DataHolder.SEVolume = GetdB(seVolumePercentage);
                         GetSettingFrameText(3).text = seVolumePercentage.ToString() + " %";
@@ -570,6 +620,7 @@ public class MainMusicSelect : MonoBehaviour
         }
         else if (mode == 0)
         {
+            /*
             string sortmodeName = null;
 
             switch (SortMode)
@@ -581,6 +632,7 @@ public class MainMusicSelect : MonoBehaviour
                     sortmodeName = "登録順";
                     break;
             }
+            */
             GetButtonUI(3).text = "決定";
             GetButtonUI(4).text = "難易度  ▲";
             GetButtonUI(5).text = "戻る";
