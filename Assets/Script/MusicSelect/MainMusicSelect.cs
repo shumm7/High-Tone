@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 public class MainMusicSelect : MonoBehaviour
@@ -14,7 +15,7 @@ public class MainMusicSelect : MonoBehaviour
     public static string[] SortedMusicList;
     private int SortMode = 0;
     public int Difficulty = 0;
-    private bool flag = false;
+    public static bool flag = false;
 
     public static int SelectedFrame = 0;
     private bool isScreenScrolling = false;
@@ -32,8 +33,6 @@ public class MainMusicSelect : MonoBehaviour
     public GameObject FrameParentSettingDisplayObject;
 
     //UI
-    public Text MaxScoreUI;
-    public Text MaxComboUI;
     public Text CategoryUI;
     public GameObject ButtonParent;
     public GameObject CategoryParant;
@@ -52,10 +51,20 @@ public class MainMusicSelect : MonoBehaviour
     private Sequence seqCategory;
     private int musicVolumePercentage;
     private int seVolumePercentage;
+    public AudioClip Enter;
 
     //List
     private MusicDataLoader.MusicList[] musicList;
     private MusicDataLoader.Category[] categoryList;
+
+    //Time
+    private float MaxTime = 99f;
+    private double CurrentTime;
+    private double StartTime;
+    public Text Countdown;
+
+    //Scene Change
+    public GameObject SceneChange;
 
 
     void Start()
@@ -64,14 +73,15 @@ public class MainMusicSelect : MonoBehaviour
         musicList = GetComponent<MusicDataLoader>().getMusicList().music;
         categoryList = GetComponent<MusicDataLoader>().getMusicList().category;
 
-        SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
-        GenerateFrame(SortedMusicList, 0, false);
-        FrameFade(SortedMusicList.Length, false, 0, true);
-
         GenerateCategoryPlate(categoryList);
         CursorFrame.SetActive(false);
         CursorCategory.SetActive(true);
 
+        SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+        GenerateFrame(SortedMusicList, 0, false);
+        FrameFade(SortedMusicList.Length, false, 0, true);
+
+        StartTime = Time.time;
 
         DOVirtual.DelayedCall(0.5f, () =>
         {
@@ -88,6 +98,37 @@ public class MainMusicSelect : MonoBehaviour
 
     void Update()
     {
+        //時間
+        CurrentTime = Time.time;
+        int counttime = RangeNoOver((int)(MaxTime - CurrentTime + StartTime), 0, (int)MaxTime);
+        if (counttime <= 10 && Countdown.text != counttime.ToString() && !flag)
+        {
+            Countdown.GetComponent<AudioSource>().PlayOneShot(Countdown.GetComponent<AudioSource>().clip);
+        }
+        Countdown.text = counttime.ToString();
+
+        if (MaxTime - (int)(CurrentTime - StartTime) <= 0 && !flag)
+        {
+            if (DisplayMode == -1)
+            {
+                if (SortedMusicList.Length <= 0)
+                {
+                    DataHolder.NextMusicID = musicList[0].id;
+                }
+                else
+                {
+                    DataHolder.NextMusicID = SortedMusicList[0];
+                }
+            }
+            else if(DisplayMode == 0)
+            {
+                DataHolder.NextMusicID = SortedMusicList[SelectedFrame];
+            }
+            flag = true;
+            GameStart();
+        }
+
+        //ボタン
         if (!flag && DisplayMode == -1)
         {
             if (Input.GetKeyDown(KeyCode.Q)) //左
@@ -104,6 +145,14 @@ public class MainMusicSelect : MonoBehaviour
                     KillFrame(SortedMusicList.Length);
                     SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
                     GenerateFrame(SortedMusicList, 620f, false);
+                    if (SortedMusicList.Length != 0)
+                    {
+                        PlayMusicPreview(0);
+                    }
+                    else
+                    {
+                        PlayMusicPreview(-1);
+                    }
                 })
                 );
                 seqCategory.Join(
@@ -126,6 +175,14 @@ public class MainMusicSelect : MonoBehaviour
                     KillFrame(SortedMusicList.Length);
                     SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
                     GenerateFrame(SortedMusicList, 620f, false);
+                    if (SortedMusicList.Length != 0)
+                    {
+                        PlayMusicPreview(0);
+                    }
+                    else
+                    {
+                        PlayMusicPreview(-1);
+                    }
                 })
                 );
                 seqCategory.Join(
@@ -143,19 +200,68 @@ public class MainMusicSelect : MonoBehaviour
                     DisplayMode = 0;
                     SelectedFrame = 0;
                     FrameScroll(SortedMusicList.Length, SelectedFrame, 0.25f, true);
-                    CursorCategory.SetActive(false);
                     CursorFrame.SetActive(true);
                     DisplayMode = -1;
 
                     CategoryParant.GetComponent<RectTransform>().DOLocalMoveY(-200f, 0.5f).SetEase(Ease.InOutQuart);
+                    CursorCategory.GetComponent<RectTransform>().DOLocalMoveY(-462f, 0.5f).SetEase(Ease.InOutQuart);
                     PlayMusicPreview(SelectedFrame);
 
                     DOVirtual.DelayedCall(0.5f, () =>
                     {
                         CategoryParant.SetActive(false);
+                        CursorCategory.SetActive(false);
                         DisplayMode = 0;
                         flag = false;
                     });
+                }
+            }
+            else if (Input.GetKeyUp(KeyCode.R)) //難易度
+            {
+                Difficulty = Range(++Difficulty, 0, 4);
+                flag = true;
+                float time = 0.2f;
+
+                FrameFade(SortedMusicList.Length, false, time, false);
+                Sequence Fade = DOTween.Sequence();
+
+                Fade.Join(MusicPreview.DOFade(0, time));
+                Fade.Insert(time,
+                    DOVirtual.DelayedCall(0, () =>
+                    {
+                        MusicPreview.Stop();
+                        KillFrame(SortedMusicList.Length);
+                        while (GetSortedMusicID(SortMode, Difficulty, "all").Length == 0)
+                        {
+                            Difficulty = Range(++Difficulty, 0, 4);
+                        }
+                        SortedMusicList = GetSortedMusicID(SortMode, Difficulty, categoryList[Category].id);
+                        GenerateFrame(SortedMusicList, 620f, false);
+                    })
+                );
+                if (SortedMusicList.Length != 0)
+                {
+                    Fade.Insert(time * 2,
+                        DOVirtual.DelayedCall(0, () =>
+                        {
+                            FrameFade(SortedMusicList.Length, true, time, false);
+                            SelectedFrame = 0;
+                            PlayMusicPreview(0);
+                        })
+                    );
+                    Fade.Insert(time * 3,
+                        DOVirtual.DelayedCall(0, () =>
+                        {
+                            flag = false;
+                            Fade.Kill();
+                        })
+                    );
+
+                    Fade.Play();
+                }
+                else
+                {
+                    flag = false;
                 }
             }
         }
@@ -255,17 +361,20 @@ public class MainMusicSelect : MonoBehaviour
             }
             else if (Input.GetKeyUp(KeyCode.T)) //カテゴリ
             {
+                flag = true;
                 FrameScroll(SortedMusicList.Length, SelectedFrame, 0.25f, false);
-                CursorCategory.SetActive(true);
                 CursorFrame.SetActive(false);
+                CursorCategory.SetActive(true);
 
                 CategoryParant.GetComponent<RectTransform>().DOLocalMoveY(0, 0.5f).SetEase(Ease.InOutQuart);
+                CursorCategory.GetComponent<RectTransform>().DOLocalMoveY(-262f, 0.5f).SetEase(Ease.InOutQuart);
                 CategoryParant.SetActive(true);
                 setUI(Category, -1);
 
                 DOVirtual.DelayedCall(0.5f, () =>
                 {
                     DisplayMode = -1;
+                    flag = false;
                 });
 
                 /* ソート切り替え
@@ -331,6 +440,9 @@ public class MainMusicSelect : MonoBehaviour
                 switch (SelectedFrame)
                 {
                     case 0: //決定
+                        flag = true;
+                        Countdown.GetComponent<AudioSource>().PlayOneShot(Enter);
+                        GameStart();
                         break;
                     case 1: //スピードダウン
                         DataHolder.NoteSpeed = RangeNoOver((int)(DataHolder.NoteSpeed - 1), 5, 25);
@@ -396,18 +508,65 @@ public class MainMusicSelect : MonoBehaviour
         }
     }
 
+    private void GameStart()
+    {
+        float timeDelay = 0.5f;
+        GameObject[] changer = new GameObject[4];
+        RectTransform[] rectTran = new RectTransform[4];
+
+        for (int i = 0; i < 4; i++) {
+            changer[i] = SceneChange.transform.Find(Difficulty.ToString()).Find(i.ToString()).gameObject;
+            rectTran[i] = changer[i].GetComponent<RectTransform>();
+        }
+        changer[0].transform.parent.gameObject.SetActive(true);
+
+        DontDestroyOnLoad(SceneChange);
+        changer[3].transform.Find("MusicFrame").GetComponent<MusicFrameComponent>().SetMusicData(Difficulty, DataHolder.NextMusicID);
+        changer[3].transform.Find("MusicFrame").Find("Title Text Mask").Find("Title").GetComponent<TextScroll>().Setup();
+        changer[3].transform.Find("MusicFrame").Find("Credits Text Mask").Find("Credits").GetComponent<TextScroll>().Setup();
+
+        DataHolder.Difficulty = Difficulty;
+
+        Sequence sceneChangeTween = DOTween.Sequence();
+        for (int i = 0; i < 4; i++) {
+            changer[i].SetActive(true);
+            sceneChangeTween.Insert(1 + 0.25f * i,
+                rectTran[i].DOLocalMoveX(0, timeDelay).SetEase(Ease.OutQuint)
+            );
+        }
+
+        sceneChangeTween.Join(
+            DOVirtual.DelayedCall(1.75f, () => {
+                ButtonParent.SetActive(false);
+            })
+        );
+
+        sceneChangeTween.Join(
+            DOVirtual.DelayedCall(5f, () => {
+                PlayMusicPreview(-1);
+            })
+        );
+
+        sceneChangeTween.Join(
+            DOVirtual.DelayedCall(6f, () => {
+                SceneManager.LoadScene("Game");
+            })
+        );
+
+        sceneChangeTween.Play();
+
+    }
+
     public void setUI(int selection, int mode)
     {
         
         if (mode == -1)
         {
             GetButtonUI(3).text = "決定";
-            GetButtonUI(4).text = "";
+            GetButtonUI(4).text = "難易度  ▲";
             GetButtonUI(5).text = "";
 
             CategoryUI.text = categoryList[selection].name;
-            MaxScoreUI.text = "";
-            MaxComboUI.text = "";
         }
         else if (mode == 0)
         {
@@ -429,9 +588,6 @@ public class MainMusicSelect : MonoBehaviour
 
             int num = FindMusicNumber(SortedMusicList[selection]);
             CategoryUI.text = GetCategoryName(musicList[num].category);
-            ScoreController.Score temp = ScoreController.LoadScore(DataHolder.UserID, musicList[num].id);
-            MaxScoreUI.text = temp.MaxScore.ToString();
-            MaxComboUI.text = temp.MaxCombo.ToString();
         }
         else if (mode == 1)
         {
@@ -614,7 +770,6 @@ public class MainMusicSelect : MonoBehaviour
             cloned.transform.Find("Title Text Mask").transform.Find("Title").GetComponent<TextScroll>().Setup();
             cloned.transform.Find("Credits Text Mask").transform.Find("Credits").GetComponent<TextScroll>().Setup();
 
-
             if (focusSelectedFrame)
             {
                 if (i == SelectedFrameNumber)
@@ -775,31 +930,48 @@ public class MainMusicSelect : MonoBehaviour
 
     private void PlayMusicPreview(int selection)
     {
-        string id = SortedMusicList[selection];
-        MusicDataLoader.MusicProperty list = GetComponent<MusicDataLoader>().getMusicProperty(id);
-        float starttime = list.preview.start;
-        float endtime = list.preview.end;
-
-        MusicPreview.volume = 0;
-
-        StartCoroutine(GetAudioClip(id, starttime));
-
         seq.Kill();
         seq = DOTween.Sequence();
-        seq.Join(
-            MusicPreview.DOFade(1, fadeTime)
-        );
-        seq.Insert(endtime - starttime,
-            MusicPreview.DOFade(0, fadeTime)
-        );
-        seq.Insert(endtime - starttime + fadeTime,
-            DOVirtual.DelayedCall(0, () => {
-                MusicPreview.Stop();
-                PlayMusicPreview(selection);
-            })
-        );
+
+        if (selection != -1)
+        {
+            string id = SortedMusicList[selection];
+            MusicDataLoader.MusicProperty list = GetComponent<MusicDataLoader>().getMusicProperty(id);
+            float starttime = list.preview.start;
+            float endtime = list.preview.end;
+            MusicPreview.volume = 0;
+
+            StartCoroutine(GetAudioClip(id, starttime));
+
+            seq.Join(
+                MusicPreview.DOFade(1, fadeTime)
+            );
+            seq.Insert(endtime - starttime,
+                MusicPreview.DOFade(0, fadeTime)
+            );
+            seq.Insert(endtime - starttime + fadeTime,
+                DOVirtual.DelayedCall(0, () =>
+                {
+                    MusicPreview.Stop();
+                    PlayMusicPreview(selection);
+                })
+            );
+        }
+        else
+        {
+            seq.Join(
+                MusicPreview.DOFade(0, fadeTime)
+            );
+            seq.Insert(fadeTime,
+                DOVirtual.DelayedCall(0, () =>
+                {
+                    MusicPreview.Stop();
+                })
+            );
+        }
 
         seq.Play();
+
     }
 
     private Text GetButtonUI(int num)

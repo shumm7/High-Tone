@@ -42,9 +42,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI ScoreText;
     public Text ComboText;
     public Text LevelText;
+    public GameObject SceneChange;
 
     //Loading
-    public GameObject LoadingPanel;
     public float FadeInTime = 3f;
     public float[] FadeInUIColor = {55, 55, 55};
 
@@ -83,7 +83,9 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("ゲームが開始されました");
         GameStatus = Status.Initializing;
-        LoadingPanel.SetActive(true);
+
+        //シーンチェンジ画面取得
+        SceneChange = GameObject.Find("Scene Change");
 
         //Video用RawImage初期化
         rawImage.SetActive(false);
@@ -91,7 +93,6 @@ public class GameManager : MonoBehaviour
         col.a = 1f;
         rawImage.GetComponent<RawImage>().color = col;
         renderTexture.Release();
-        LoadingPanel.GetComponent<Image>().color = new Color(FadeInUIColor[0] / 255, FadeInUIColor[1] / 255, FadeInUIColor[2] / 255, 1f);
 
         //到着時間
         NoteSpeed = speed;
@@ -162,13 +163,15 @@ public class GameManager : MonoBehaviour
         //非デバッグ時の処理
         if (MusicID == "")
         {
-            //前のシーンから曲のデータを読み込む
+            MusicID = DataHolder.NextMusicID;
+            Difficulty = DataHolder.Difficulty;
         }
         else
         {
             DebugMode = true;
             Debug.LogWarning("エディタ用デバッグモードで起動中");
         }
+        DataHolder.DebugMode = DebugMode;
 
         //楽曲データ取得
         DebugLog("楽曲データを取得中");
@@ -256,13 +259,34 @@ public class GameManager : MonoBehaviour
         string path = "Music/" + MusicID + "/music.wav";
         StartCoroutine(GetAudioClip(path));
 
-        //FadeIn
-        yield return new WaitForSeconds(1f);
-        Image FadeInImage = LoadingPanel.GetComponent<Image>();
-        DOTween.ToAlpha( () => FadeInImage.color,
-            a => FadeInImage.color = a, 0f, FadeInTime
+        //画面の遷移
+        float timeDelay = 0.5f;
+        GameObject[] changer = new GameObject[4];
+        RectTransform[] rectTran = new RectTransform[4];
+
+        for (int i = 0; i < 4; i++)
+        {
+            changer[i] = SceneChange.transform.Find(Difficulty.ToString()).Find(i.ToString()).gameObject;
+            rectTran[i] = changer[i].GetComponent<RectTransform>();
+        }
+
+        Sequence sceneChangeTween = DOTween.Sequence();
+        for (int i = 0; i < 4; i++)
+        {
+            sceneChangeTween.Insert(1 + 0.25f * (3 - i),
+                rectTran[i].DOLocalMoveX(-1280, timeDelay).SetEase(Ease.OutQuint)
+            );
+        }
+
+        sceneChangeTween.Join(
+            DOVirtual.DelayedCall(4f, () => {
+                Destroy(SceneChange);
+            })
         );
-        yield return new WaitForSeconds(PlayTime + FadeInTime);
+
+        sceneChangeTween.Play();
+
+        yield return new WaitForSeconds(4);
 
         //音楽の再生
         TimeComponent.SetStartTime();

@@ -7,14 +7,14 @@ using UnityEngine;
 
 public class ScoreController : MonoBehaviour
 {
-    public static void SaveScore(string UserID, string MusicID, int Score, int Combo)
+    public static void SaveScore(string UserID, int difficulty, string MusicID, int Score, int Combo)
     {
         StreamWriter sw = null;
-        string Filename = "Music/" + MusicID + "/score.csv";
+        string Filename = "Music/" + MusicID + "/score" + difficulty.ToString() + ".csv";
 
         try
         {
-            if(LoadScore(UserID, MusicID) == null)
+            if(LoadScore(UserID, difficulty, MusicID) == null)
             {
                 sw = new StreamWriter(@Filename, true);
                 sw.WriteLine(UserID + "," + Score.ToString() + "," + Combo.ToString());
@@ -22,7 +22,7 @@ public class ScoreController : MonoBehaviour
             }
             else
             {
-                List<string[]> list = ReadCSV(MusicID);
+                List<string[]> list = ReadCSV(MusicID, difficulty);
                 int cnt = 0;
                 foreach (string[] index in list)
                 {
@@ -54,13 +54,13 @@ public class ScoreController : MonoBehaviour
         }
     }
 
-    public static Score LoadScore(string UserID, string MusicID) {
+    public static Score LoadScore(string UserID, int difficulty, string MusicID) {
         Score res= new Score();
-        string Filename = "Music/" + MusicID + "/score.csv";
+        string Filename = "Music/" + MusicID + "/score" + difficulty.ToString() +".csv";
 
         if (checkExist(@Filename))
         {
-            List<string[]> list = ReadCSV(MusicID);
+            List<string[]> list = ReadCSV(MusicID, difficulty);
             foreach(string[] index in list)
             {
                 if (index[0] == UserID)
@@ -78,19 +78,19 @@ public class ScoreController : MonoBehaviour
         }
         else
         {
-            GenerateScoreData(MusicID);
-            SaveScore(UserID, MusicID, 0, 0);
-            return LoadScore(UserID, MusicID);
+            GenerateScoreData(MusicID, difficulty);
+            SaveScore(UserID, difficulty, MusicID, 0, 0);
+            return LoadScore(UserID, difficulty, MusicID);
         }
     }
 
-    public static void DeleteScore(string UserID, string MusicID)
+    public static void DeleteScore(string UserID, int difficulty, string MusicID)
     {
-        string Filename = "Music/" + MusicID + "/score.csv";
+        string Filename = "Music/" + MusicID + "/score" + difficulty.ToString() + ".csv";
         StreamWriter sw = null;
 
         try {
-            if(LoadScore(UserID, MusicID) != null)
+            if(LoadScore(UserID, difficulty, MusicID) != null)
             {
                 string[] lines = File.ReadAllLines(@Filename);
 
@@ -115,10 +115,10 @@ public class ScoreController : MonoBehaviour
 
     }
 
-    public static void GenerateScoreData(string MusicID)
+    public static void GenerateScoreData(string MusicID, int difficulty)
     {
         StreamWriter sw = null;
-        string Filename = "Music/" + MusicID + "/score.csv";
+        string Filename = "Music/" + MusicID + "/score" + difficulty.ToString() + ".csv";
 
         try
         {
@@ -143,9 +143,9 @@ public class ScoreController : MonoBehaviour
         return File.Exists(@Filename);
     }
 
-    private static List<string[]> ReadCSV(string MusicID)
+    private static List<string[]> ReadCSV(string MusicID, int difficulty)
     {
-        string Filename = "Music/" + MusicID + "/score.csv";
+        string Filename = "Music/" + MusicID + "/score" + difficulty.ToString() + ".csv";
 
         string csvText = File.ReadAllText(@Filename, Encoding.GetEncoding("utf-8"));
         StringReader sr = new StringReader(csvText);

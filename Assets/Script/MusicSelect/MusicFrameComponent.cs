@@ -14,6 +14,8 @@ public class MusicFrameComponent : MonoBehaviour
     public Text BPMUI;
     public Text LevelUI;
     public Text TimeUI;
+    public Text ScoreUI;
+    public Text ComboUI;
 
     public Texture[] FrameTexture = new Texture[5];
 
@@ -48,6 +50,11 @@ public class MusicFrameComponent : MonoBehaviour
 
             //Level
             LevelUI.text = data.level[difficulty].ToString();
+
+            //Score & Combo
+            ScoreController.Score temp = ScoreController.LoadScore(DataHolder.UserID, difficulty, id);
+            ComboUI.text = "COMBO " + temp.MaxCombo.ToString();
+            ScoreUI.text = temp.MaxScore.ToString();
 
             //Time
             string path = "Music/" + id + "/music.wav";
