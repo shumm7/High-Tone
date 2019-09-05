@@ -66,6 +66,13 @@ public class MainMusicSelect : MonoBehaviour
     //Scene Change
     public GameObject SceneChange;
 
+    KeyCode[] Key = new KeyCode[] {
+            KeyCode.Q, KeyCode.A,KeyCode.Z,
+            KeyCode.W, KeyCode.S, KeyCode.X,
+            KeyCode.E, KeyCode.D, KeyCode.C,
+            KeyCode.R, KeyCode.F, KeyCode.V,
+            KeyCode.T, KeyCode.G, KeyCode.B,
+        };
 
     void Start()
     {
@@ -131,7 +138,7 @@ public class MainMusicSelect : MonoBehaviour
         //ボタン
         if (!flag && DisplayMode == -1)
         {
-            if (Input.GetKeyDown(KeyCode.Q)) //左
+            if (TimeComponent.isKeyPressed(0)) //左
             {
                 Category = Range(Category - 1, 0, categoryList.Length - 1);
                 ScrollCategoryPlate(categoryList.Length, Category, 0.25f);
@@ -162,7 +169,7 @@ public class MainMusicSelect : MonoBehaviour
                 })
                 );
             }
-            else if (Input.GetKeyDown(KeyCode.W)) //右
+            else if (TimeComponent.isKeyPressed(1)) //右
             {
                 Category = Range(Category + 1, 0, categoryList.Length - 1);
                 ScrollCategoryPlate(categoryList.Length, Category, 0.25f);
@@ -192,7 +199,7 @@ public class MainMusicSelect : MonoBehaviour
                 })
                 );
             }
-            else if (Input.GetKeyDown(KeyCode.E)) //決定
+            else if (TimeComponent.isKeyPressed(2)) //決定
             {
                 if (SortedMusicList.Length != 0) {
                     flag = true;
@@ -216,7 +223,7 @@ public class MainMusicSelect : MonoBehaviour
                     });
                 }
             }
-            else if (Input.GetKeyUp(KeyCode.R)) //難易度
+            else if (TimeComponent.isKeyPressed(3)) //難易度
             {
                 Difficulty = Range(++Difficulty, 0, 4);
                 flag = true;
@@ -267,21 +274,21 @@ public class MainMusicSelect : MonoBehaviour
         }
         else if (!flag && DisplayMode==0)
         {
-            if (Input.GetKeyDown(KeyCode.Q)) //左
+            if (TimeComponent.isKeyPressed(0)) //左
             {
                 SelectedFrame--;
                 SelectedFrame = Range(SelectedFrame, 0, SortedMusicList.Length - 1);
                 PlayMusicPreview(SelectedFrame);
                 FrameScroll(SortedMusicList.Length, SelectedFrame, 0.2f, true);
             }
-            else if (Input.GetKeyDown(KeyCode.W)) //右
+            else if (TimeComponent.isKeyPressed(1)) //右
             {
                 SelectedFrame++;
                 SelectedFrame = Range(SelectedFrame, 0, SortedMusicList.Length - 1);
                 PlayMusicPreview(SelectedFrame);
                 FrameScroll(SortedMusicList.Length, SelectedFrame, 0.2f, true);
             }
-            else if (Input.GetKeyUp(KeyCode.E)) //決定
+            else if (TimeComponent.isKeyPressed(2)) //決定
             {
                 flag = true;
                 FrameFade(SortedMusicList.Length, false, 0.5f, true);
@@ -330,7 +337,7 @@ public class MainMusicSelect : MonoBehaviour
                     flag = false;
                 });
             }
-            else if (Input.GetKeyUp(KeyCode.R)) //難易度
+            else if (TimeComponent.isKeyPressed(3)) //難易度
             {
                 Difficulty = Range(++Difficulty, 0, 4);
                 flag = true;
@@ -371,7 +378,7 @@ public class MainMusicSelect : MonoBehaviour
 
                 Fade.Play();
             }
-            else if (Input.GetKeyUp(KeyCode.T)) //カテゴリ
+            else if (TimeComponent.isKeyPressed(4)) //カテゴリ
             {
                 flag = true;
                 FrameScroll(SortedMusicList.Length, SelectedFrame, 0.25f, false);
@@ -431,7 +438,7 @@ public class MainMusicSelect : MonoBehaviour
         }
         else if(!flag && DisplayMode == 1)
         {
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (TimeComponent.isKeyPressed(0))
             {
                 SelectedFrame--;
                 SelectedFrame = Range(SelectedFrame, 0, AllSettings - 1);
@@ -439,7 +446,7 @@ public class MainMusicSelect : MonoBehaviour
 
                 FrameScroll(AllSettings, SelectedFrame, 0.2f, true);
             }
-            else if (Input.GetKeyDown(KeyCode.W))
+            else if (TimeComponent.isKeyPressed(1))
             {
                 SelectedFrame++;
                 SelectedFrame = Range(SelectedFrame, 0, AllSettings - 1);
@@ -447,7 +454,7 @@ public class MainMusicSelect : MonoBehaviour
 
                 FrameScroll(AllSettings, SelectedFrame, 0.2f, true);
             }
-            else if (Input.GetKeyDown(KeyCode.E))
+            else if (TimeComponent.isKeyPressed(2))
             {
                 switch (SelectedFrame)
                 {
@@ -493,7 +500,7 @@ public class MainMusicSelect : MonoBehaviour
                         break;
                 }
             }
-            else if (Input.GetKeyDown(KeyCode.R))
+            else if (TimeComponent.isKeyPressed(3))
             {
                 switch (SelectedFrame)
                 {
@@ -538,7 +545,7 @@ public class MainMusicSelect : MonoBehaviour
                         break;
                 }
             }
-            else if(Input.GetKeyDown(KeyCode.T))
+            else if(TimeComponent.isKeyPressed(4))
             {
                 flag = true;
                 FrameFade(SortedMusicList.Length, false, 0.5f, true);

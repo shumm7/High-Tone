@@ -14,10 +14,4 @@ public class ApplicationInformation : MonoBehaviour
 
         UI.text = "High Tone   Version " + Application.version + "\nUnity Runtime " + UnityEngine.Application.unityVersion;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

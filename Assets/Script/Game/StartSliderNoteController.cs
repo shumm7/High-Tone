@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoteController : MonoBehaviour
+public class StartSliderNoteController : MonoBehaviour
 {
 
     public float speed;

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1560825102361871636}
   - component: {fileID: 1560825102361871637}
   - component: {fileID: 1560825102361871642}
+  - component: {fileID: 6930395026665813463}
   m_Layer: 0
   m_Name: SliderNote
   m_TagString: Untagged
@@ -93,3 +94,30 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6930395026665813463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560825102361871640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f002f9d624d87e44da58c6eb5251a1e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 10
+  Rail: 0
+  ArrivalTime: 0
+  tappedEffectBadPrefab: {fileID: 100000, guid: 83cd9cc9f9c88824ba18dc59b05ae328,
+    type: 3}
+  tappedEffectGoodPrefab: {fileID: 100004, guid: fb7b0526ade434043b350a180d741cf3,
+    type: 3}
+  tappedEffectGreatPrefab: {fileID: 100004, guid: fb7b0526ade434043b350a180d741cf3,
+    type: 3}
+  tappedEffectPerfectPrefab: {fileID: 100018, guid: a40b64bf23366dc42a892af2c6ff6140,
+    type: 3}
+  audioSource: {fileID: 0}
+  NotePerfectSE: {fileID: 8300000, guid: ca3c74c292e71ff4f8e267ea9600da63, type: 3}
+  NoteGreatSE: {fileID: 8300000, guid: e9f7f1be740b2554997ef89cc3acf950, type: 3}
+  NoteGoodSE: {fileID: 8300000, guid: e9f7f1be740b2554997ef89cc3acf950, type: 3}

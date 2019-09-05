@@ -26,29 +26,29 @@ public class ButtonEffect : MonoBehaviour
         if (!MainMusicSelect.flag)
         {
             //Sound
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (TimeComponent.isKeyPressed(0))
             {
                 audioSource.PlayOneShot(audioSource.clip);
             }
-            if (Input.GetKeyDown(KeyCode.W))
+            if (TimeComponent.isKeyPressed(1))
             {
                 audioSource.PlayOneShot(audioSource.clip);
             }
-            if (Input.GetKeyDown(KeyCode.E))
+            if (TimeComponent.isKeyPressed(2))
             {
                 audioSource.PlayOneShot(audioSource.clip);
             }
-            if (Input.GetKeyDown(KeyCode.R))
+            if (TimeComponent.isKeyPressed(3))
             {
                 audioSource.PlayOneShot(audioSource.clip);
             }
-            if (Input.GetKeyDown(KeyCode.T))
+            if (TimeComponent.isKeyPressed(4))
             {
                 audioSource.PlayOneShot(audioSource.clip);
             }
 
             //Effect
-            if (Input.GetKey(KeyCode.Q))
+            if (TimeComponent.isKeyPressing(0))
             {
                 ButtonOverray[0].SetActive(true);
             }
@@ -56,7 +56,7 @@ public class ButtonEffect : MonoBehaviour
             {
                 ButtonOverray[0].SetActive(false);
             }
-            if (Input.GetKey(KeyCode.W))
+            if (TimeComponent.isKeyPressing(1))
             {
                 ButtonOverray[1].SetActive(true);
             }
@@ -64,7 +64,7 @@ public class ButtonEffect : MonoBehaviour
             {
                 ButtonOverray[1].SetActive(false);
             }
-            if (Input.GetKey(KeyCode.E))
+            if (TimeComponent.isKeyPressing(2))
             {
                 ButtonOverray[2].SetActive(true);
             }
@@ -72,7 +72,7 @@ public class ButtonEffect : MonoBehaviour
             {
                 ButtonOverray[2].SetActive(false);
             }
-            if (Input.GetKey(KeyCode.R))
+            if (TimeComponent.isKeyPressing(3))
             {
                 ButtonOverray[3].SetActive(true);
             }
@@ -80,7 +80,7 @@ public class ButtonEffect : MonoBehaviour
             {
                 ButtonOverray[3].SetActive(false);
             }
-            if (Input.GetKey(KeyCode.T))
+            if (TimeComponent.isKeyPressing(4))
             {
                 ButtonOverray[4].SetActive(true);
             }

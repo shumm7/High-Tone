@@ -5,7 +5,7 @@ using UnityEngine;
 public class SpecialNoteController : MonoBehaviour
 {
 
-    [SerializeField] float speed;
+    public float speed;
     [SerializeField] int Rail;
     [SerializeField] double ArrivalTime;
     [SerializeField] GameObject tappedEffectBadPrefab;

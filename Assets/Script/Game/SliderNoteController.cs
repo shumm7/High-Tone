@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoteController : MonoBehaviour
+public class SliderNoteController : MonoBehaviour
 {
 
     public float speed;
@@ -75,7 +75,7 @@ public class NoteController : MonoBehaviour
                 AddEffect(ScoreCalculation.Judgement.Great);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Great");
             }
-            else if (diff <= 0.06 && diff >= 0) //Perfect
+            else if (System.Math.Abs(ArrivalTime - TimeComponent.GetCurrentTimePast())<=0.06 && TimeComponent.isKeyPressing(Rail)) //Perfect
             {
                 audioSource.PlayOneShot(NotePerfectSE);
                 this.gameObject.SetActive(false);

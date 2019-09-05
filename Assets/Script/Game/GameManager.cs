@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -18,13 +19,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool PlayVideo = true;
     [SerializeField] float PlayTime = 3.0f;
     [SerializeField] int Difficulty = 0; //0Easy 1Normal 2Hard 3VeryHard 4Extra
-    [SerializeField] float speed = 10f;
-    [SerializeField] double GlobalOffset = 0;
+    public float speed = 10f;
+    public double GlobalOffset = 0;
     public GameObject NotesPrefab;
-    //public GameObject SliderNotesPrefab;
+    public GameObject SliderNotesPrefab;
+    public GameObject StartSliderNotesPrefab;
     public GameObject SpecialNotesPrefab;
     //public GameObject DamageNotesPrefab;
     public GameObject NotesParentObject;
+
+    private int slidernotecount = 0;
 
     //Audio
     public AudioSource audioSource;
@@ -70,19 +74,25 @@ public class GameManager : MonoBehaviour
     public static float[] NoteX = {-2.90f, -1.45f, 0, 1.45f, 2.90f};
     public static float NoteY = 18.5f;
     public static float NoteZ = 0.9f;
-    public static float DetectionLineY = -1.5f;
+    public static float DetectionLineY = -1.55f;
     public static float ArrivalTime;
     public static float NoteSpeed; //他のオブジェクト用変数
 
     //ノーツの起動時間
     public static double[] NoteStartTime;
+    public static double[,] NoteStartTimeSlider;
     private int NextNotesNumber = 0;
     private float MusicStartTimeOffset = 0;
 
     void Awake()
     {
+
         Debug.Log("ゲームが開始されました");
         GameStatus = Status.Initializing;
+
+        //到着時間
+        NoteSpeed = speed;
+        ArrivalTime = (NoteY - DetectionLineY) / speed;
 
         //シーンチェンジ画面取得
         SceneChange = GameObject.Find("Scene Change");
@@ -100,9 +110,6 @@ public class GameManager : MonoBehaviour
         videoPlayer.source = VideoSource.Url;
         videoPlayer.Play();
 
-        //到着時間
-        NoteSpeed = speed;
-        ArrivalTime = (NoteY - DetectionLineY) / speed;
 
         StartCoroutine("StartSettings");
     }
@@ -114,12 +121,30 @@ public class GameManager : MonoBehaviour
             if (TimeComponent.GetCurrentTimePast() >= NoteStartTime[NextNotesNumber] && TimeComponent.StartTime != 0)
             {
                 NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
+
+                if (Notes[NextNotesNumber].type == 2)
+                {
+                    for (int i = 0; i < Notes[NextNotesNumber].notes.Length; i++)
+                    {
+                        NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + i.ToString()).gameObject.SetActive(true);
+                    }
+                }
+
                 NextNotesNumber++;
                 while (checkNextNoteIsSameTime(NextNotesNumber - 1))
                 {
                     NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
                     NextNotesNumber++;
+
+                    if (Notes[NextNotesNumber].type == 2)
+                    {
+                        for (int i = 0; i < Notes[NextNotesNumber].notes.Length; i++)
+                        {
+                            NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + i.ToString()).gameObject.SetActive(true);
+                        }
+                    }
                 }
+                
             }
         }
 
@@ -172,7 +197,7 @@ public class GameManager : MonoBehaviour
             MusicID = DataHolder.NextMusicID;
             Difficulty = DataHolder.Difficulty;
             PlayVideo = DataHolder.isVideo;
-            GlobalOffset = DataHolder.GlobalNoteOffset;
+            GlobalOffset += DataHolder.GlobalNoteOffset;
         }
         else
         {
@@ -196,6 +221,7 @@ public class GameManager : MonoBehaviour
         //ノーツ生成時刻計算
         DebugLog("ノーツの移動開始時刻を計算中");
         NoteStartTime = new double[MaxNotesAmount];
+        NoteStartTimeSlider = new double[MaxNotesAmount, 64];
 
         double tSPB = ((double)60 / ((double)BPM * (double)Notes[0].LPB));
         if ((tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset) <= 0)
@@ -206,9 +232,9 @@ public class GameManager : MonoBehaviour
         for (int n = 0; n < MaxNotesAmount; n++)
         {
             //1ノーツの単位 60/(BPM*LPB)
-            double SPB = ((double)60 / ((double)BPM * (double)Notes[n].LPB));
+            double SPB = (60f / ((double)BPM * (double)Notes[n].LPB));
 
-            NoteStartTime[n] = SPB * (double)Notes[n].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
+            NoteStartTime[n] = SPB * Notes[n].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
             if (n + 1 != MaxNotesAmount && Notes[n].num == Notes[n + 1].num && Notes[n].LPB == Notes[n + 1].LPB && Notes[n].type == Notes[n + 1].type)
             {
                 NoteStartTime[n + 1] = NoteStartTime[n];
@@ -216,7 +242,12 @@ public class GameManager : MonoBehaviour
             }
             if (Notes[n].type == 2)
             {
-                //スライダーの処理
+                for (int k=0; k< Notes[n].notes.Length; k++)
+                {
+                    double tempSPB = (60f / ((double)BPM * (double)Notes[n].notes[k].LPB));
+                    NoteStartTimeSlider[n,k] = tempSPB * Notes[n].notes[k].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
+
+                }
             }
         }
 
@@ -350,7 +381,8 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<NoteController>().SetRailNumber(place);
-            ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+            ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num] + ArrivalTime);
+            ClonedNotesObject.GetComponent<NoteController>().speed = speed;
 
             float temp = Mathf.Round((num + 1) / 20f) * 10;
             temp = (temp / 100f) * 5f + 1;
@@ -360,7 +392,27 @@ public class GameManager : MonoBehaviour
         }
         else if (Notes[num].type == ScoreCalculation.NoteType.Slider)
         { //Slider Notes
+            GameObject ClonedNotesObject = Instantiate(StartSliderNotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
+            ClonedNotesObject.SetActive(false);
+            ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
+            ClonedNotesObject.name = num.ToString();
+            ClonedNotesObject.GetComponent<StartSliderNoteController>().SetRailNumber(place);
+            ClonedNotesObject.GetComponent<StartSliderNoteController>().SetArrivalTime(NoteStartTime[num] + ArrivalTime);
+            ClonedNotesObject.GetComponent<StartSliderNoteController>().speed = speed;
 
+
+            int cnt = 0;
+            foreach(MusicDataLoader.NoteInfoNext sliderNote in Notes[num].notes)
+            {
+                GameObject ClonedSliderNotes = Instantiate(SliderNotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
+                ClonedSliderNotes.SetActive(false);
+                ClonedSliderNotes.transform.localPosition = new Vector3(NoteX[Notes[num].notes[cnt].block], NoteY + speed * (float)(NoteStartTimeSlider[num, cnt] - NoteStartTime[num]), NoteZ);
+                ClonedSliderNotes.name = num.ToString() + "-" + cnt.ToString();
+                ClonedSliderNotes.GetComponent<SliderNoteController>().SetRailNumber(Notes[num].notes[cnt].block);
+                ClonedSliderNotes.GetComponent<SliderNoteController>().SetArrivalTime(NoteStartTimeSlider[num, cnt] + ArrivalTime);
+                ClonedSliderNotes.GetComponent<SliderNoteController>().speed = speed;
+                cnt++;
+            }
         }
         else if (Notes[num].type == ScoreCalculation.NoteType.Special)
         { //Special Notes
@@ -370,6 +422,7 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<SpecialNoteController>().SetRailNumber(place);
             ClonedNotesObject.GetComponent<SpecialNoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+            ClonedNotesObject.GetComponent<SpecialNoteController>().speed = speed;
 
             float temp = Mathf.Round((num + 1) / 20f) * 10;
             temp = (temp / 100f) * 5f + 1;

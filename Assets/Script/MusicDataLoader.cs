@@ -112,7 +112,17 @@ public class MusicDataLoader : MonoBehaviour
         public int num;
         public int block;
         public int type;
-        [System.NonSerialized] public NoteInfo[] notes;
+        public NoteInfoNext[] notes;
+    }
+
+    [Serializable]
+    public class NoteInfoNext
+    {
+        public int LPB;
+        public int num;
+        public int block;
+        public int type;
+        [System.NonSerialized] public NoteInfoNext[] notes;
     }
 
     [Serializable]
@@ -131,8 +141,6 @@ public class MusicDataLoader : MonoBehaviour
 
     public bool saveFile(string Filename, string text)
     {
-        if (checkExist(Filename))
-        {
             StreamWriter sw = null;
             bool res;
 
@@ -140,6 +148,7 @@ public class MusicDataLoader : MonoBehaviour
             {
                 sw = new StreamWriter(@Filename, false);
                 sw.WriteLine(text);
+                sw.Flush();
                 res = true;
             }
             catch (Exception e)
@@ -154,11 +163,6 @@ public class MusicDataLoader : MonoBehaviour
                     sw.Close();
             }
             return res;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     public string load(string Filename)

@@ -77,27 +77,25 @@ public class ScoreCalculation : MonoBehaviour
         JudgementCount[judge]++;
         float BonusMultiplier = Mathf.Round(Combo / 20f) * 10;
         BonusMultiplier = (BonusMultiplier / 100f) * 5f + 1;
-        float SpecialNoteMultiplier = 1;
 
         if (type == NoteType.Special)
         {
             BonusMultiplier *= 2;
-            SpecialNoteMultiplier = 2;
         }
 
         switch (judge)
         {
             case 0: //Perfect
-                Score += (int)(200f * SpecialNoteMultiplier * BonusMultiplier);
+                Score += (int)(200f * BonusMultiplier);
                 Combo++;
                 break;
             case 1: //Great
-                Score += (int)(100f * SpecialNoteMultiplier * BonusMultiplier);
+                Score += (int)(100f * BonusMultiplier);
                 Combo++;
                 break;
             case 2: //Good
                 Combo = 0;
-                Score += (int)(50f * SpecialNoteMultiplier);
+                Score += (int)(50f);
                 break;
             case 3:
             case 4:

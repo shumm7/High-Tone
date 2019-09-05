@@ -12,6 +12,7 @@ public class VideoController : MonoBehaviour
     public VideoPlayer videoPlayer;
     public AudioSource audioSource;
     public GameObject SceneChange;
+    public string nextScene;
     private int video = 0;
     bool flag = false;
     bool KeyPressedFlag = false;
@@ -45,18 +46,32 @@ public class VideoController : MonoBehaviour
 
             SceneChange.SetActive(true);
             DontDestroyOnLoad(SceneChange);
-            RectTransform rectTran = SceneChange.transform.Find("Panel").GetComponent<RectTransform>();
-            seq.Insert(1, 
-                rectTran.DOLocalMoveX(0, 1f).SetEase(Ease.OutQuint)
-            );
+
+            Sequence sceneChangeTween = DOTween.Sequence();
+
+
+            float timeDelay = 0.5f;
+            GameObject[] changer = new GameObject[4];
+            RectTransform[] rectTran = new RectTransform[4];
+            for (int i = 0; i < 4; i++)
+            {
+                changer[i] = SceneChange.transform.Find(i.ToString()).gameObject;
+                rectTran[i] = changer[i].GetComponent<RectTransform>();
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                changer[i].SetActive(true);
+                sceneChangeTween.Insert(1 + 0.25f * i,
+                    rectTran[i].DOLocalMoveX(0, timeDelay).SetEase(Ease.OutQuint)
+                );
+            }
             seq.Join(
                 audioSource.DOFade(0, 1)
             );
             seq.Join(
-                DOVirtual.DelayedCall(3f, () =>
+                DOVirtual.DelayedCall(5f, () =>
                 {
-                    Destroy(SceneChange);
-                    SceneManager.LoadScene("Music Select");
+                    SceneManager.LoadScene(nextScene);
                 })
             );
 
@@ -78,7 +93,6 @@ public class VideoController : MonoBehaviour
                 video = 0;
             }
 
-            Debug.Log(video);
             vp.url = "Music/TitleVideos/" + video.ToString() + ".mp4";
             vp.source = VideoSource.Url;
             vp.Prepare();

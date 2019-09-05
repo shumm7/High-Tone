@@ -6,8 +6,15 @@ public class TimeComponent : MonoBehaviour
 {
     public static double StartTime;
     public static double[] KeyPressedTime;
+    static KeyCode[] Key = new KeyCode[] {
+            KeyCode.Q, KeyCode.A,KeyCode.Z,
+            KeyCode.W, KeyCode.S, KeyCode.X,
+            KeyCode.E, KeyCode.D, KeyCode.C,
+            KeyCode.R, KeyCode.F, KeyCode.V,
+            KeyCode.T, KeyCode.G, KeyCode.B,
+        };
 
-    void Awake()
+void Awake()
     {
         KeyPressedTime = new double[5];
     }
@@ -45,21 +52,12 @@ public class TimeComponent : MonoBehaviour
 
     public static bool isKeyPressing(int num)
     {
-        switch (num)
-        {
-            case 0:
-                return Input.GetKey(KeyCode.Q);
-            case 1:
-                return Input.GetKey(KeyCode.W);
-            case 2:
-                return Input.GetKey(KeyCode.E);
-            case 3:
-                return Input.GetKey(KeyCode.R);
-            case 4:
-                return Input.GetKey(KeyCode.T);
-            default:
-                return false;
-        }
+        return Input.GetKey(Key[num * 3]) || Input.GetKey(Key[num * 3 + 1]) || Input.GetKey(Key[num * 3 + 2]);
+    }
+
+    public static bool isKeyPressed(int num)
+    {
+        return Input.GetKeyDown(Key[num * 3]) || Input.GetKeyDown(Key[num * 3 + 1]) || Input.GetKeyDown(Key[num * 3 + 2]);
     }
 
     public static bool isSomeKeysPressing(int num1, int num2, int mode) //0 - 2
