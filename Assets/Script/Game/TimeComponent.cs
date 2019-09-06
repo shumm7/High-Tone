@@ -55,6 +55,12 @@ void Awake()
         return Input.GetKey(Key[num * 3]) || Input.GetKey(Key[num * 3 + 1]) || Input.GetKey(Key[num * 3 + 2]);
     }
 
+    public static bool isKeyPressingDetailed(int num)
+    {
+        return Input.GetKey(Key[num]);
+    }
+
+
     public static bool isKeyPressed(int num)
     {
         return Input.GetKeyDown(Key[num * 3]) || Input.GetKeyDown(Key[num * 3 + 1]) || Input.GetKeyDown(Key[num * 3 + 2]);
