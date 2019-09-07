@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
     public static float[] NoteX = {-2.90f, -1.45f, 0, 1.45f, 2.90f};
     public static float NoteY = 18.5f;
     public static float NoteZ = 0.9f;
-    public static float DetectionLineY = -1.55f;
+    public static float DetectionLineY = -1.56f;
     public static float ArrivalTime;
     public static float NoteSpeed; //他のオブジェクト用変数
 

@@ -15,6 +15,7 @@ public class SliderSquareController : MonoBehaviour
     public float speed;
     public double ArrivalTime;
     public double FinishTime;
+    public float Mask;
     private int BPM;
     private int LPB;
     private float DetectionLine;
@@ -38,7 +39,7 @@ public class SliderSquareController : MonoBehaviour
         EndRail = Range(EndRail, 1, 5);
 
         SetPosition();
-        setMesh(width, length, StartRail, EndRail);
+        setMesh(width, length, Mask);
         CreateMesh();
 
         DetectionLine = GameManager.DetectionLineY;
@@ -50,39 +51,50 @@ public class SliderSquareController : MonoBehaviour
     {
         if (this.gameObject.activeSelf)
         {
+            if(transform.localPosition.y <= DetectionLine)
+            {
+                Mask += speed * Time.fixedDeltaTime;
+            }
+
+            setMesh(width, length, Mask);
+            CreateMesh();
             this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
         }
-        Debug.Log(GetHitting(transform.localPosition.y));
-        Debug.Log(isPressing(GetHitting(transform.localPosition.y)));
     }
 
-    void setMesh(float width, float length, int startRail, int endRail)
+    void setMesh(float width, float length, float mask)
     {
         int posDiff = EndRail - StartRail;
         
         float wholeWidth = (System.Math.Abs(posDiff) + 1) * width;
+        double angle = System.Math.Atan(length / (System.Math.Abs(posDiff) * width));
 
         if (posDiff >= 0) {
+            float maskX = mask / (float)System.Math.Tan(angle);
+
             vertices = new Vector3[] {
                 //上辺
                 new Vector3 ((wholeWidth / 2f) - width, length, 0f),
                 new Vector3 (wholeWidth / 2f, length, 0f),
 
                 //底辺
-                new Vector3 (-wholeWidth / 2f, 0f, 0f),
-                new Vector3 (-(wholeWidth / 2f) + width, 0f, 0f)
+                new Vector3 (-wholeWidth / 2f + maskX, 0f + mask, 0f),
+                new Vector3 (-(wholeWidth / 2f) + width + maskX, 0f + mask, 0f)
             };
         }
         else
         {
+            float maskX = -mask / (float)System.Math.Tan(angle);
+
+
             vertices = new Vector3[] {
                 //上辺
                 new Vector3 (-wholeWidth / 2f, length, 0f),
                 new Vector3 (-(wholeWidth / 2f) + width, length, 0f),
 
                 //底辺
-                new Vector3 ((wholeWidth / 2f) - width, 0f, 0f),
-                new Vector3 (wholeWidth / 2f, 0f, 0f)
+                new Vector3 ((wholeWidth / 2f) - width + maskX,  0f + mask, 0f),
+                new Vector3 (wholeWidth / 2f + maskX,  0f + mask, 0f)
             };
         }
         uvs = new Vector2[] {
