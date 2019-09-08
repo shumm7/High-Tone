@@ -60,6 +60,11 @@ void Awake()
         return Input.GetKey(Key[num]);
     }
 
+    public static int GetKeyRail(int button)
+    {
+        return button / 3;
+    }
+
 
     public static bool isKeyPressed(int num)
     {

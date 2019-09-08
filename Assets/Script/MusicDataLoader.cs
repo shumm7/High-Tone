@@ -82,7 +82,6 @@ public class MusicDataLoader : MonoBehaviour
     {
         public string music;
         public string ruby;
-        public int notes;
         public int[] level;
         public bool video;
         public string credits;

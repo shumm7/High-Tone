@@ -18,6 +18,7 @@ public class ScoreCalculation : MonoBehaviour
     public static int MaxNotesAmount;
     public static int MaximumScore = 0;
     public static int ObjectiveScore = 0;
+    public static int MaximumCombo = 0;
     private static int ScoreAddedFlag = -1;
 
     public static int Combo = 0;
@@ -33,7 +34,6 @@ public class ScoreCalculation : MonoBehaviour
     {
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
-        MaximumScore = GameManager.MaximumScore;
         ObjectiveScore = GameManager.MaximumScoreForDisplay;
 
         ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
@@ -82,6 +82,17 @@ public class ScoreCalculation : MonoBehaviour
         {
             BonusMultiplier *= 2;
         }
+
+        if(type == NoteType.Special)
+        {
+            MaximumScore += (int)400;
+
+        }
+        else
+        {
+            MaximumScore += (int)200;
+        }
+        MaximumCombo++;
 
         switch (judge)
         {

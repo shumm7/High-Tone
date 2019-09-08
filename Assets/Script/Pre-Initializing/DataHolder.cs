@@ -28,8 +28,8 @@ public class DataHolder : MonoBehaviour
     public static int ObjectiveScore = 0; //目標スコア
     public static int MaximumScore; //その楽曲での最高スコア
     public static float ScorePercentage; //最高スコアに対する獲得スコアの割合
-    public static int Combo = 0; //コンボ
-    public static int MaximumCombo; //その楽曲での最高コンボ
+    public static int Combo = 0; //1ゲーム内での最高コンボ
+    public static int MaximumCombo; //その楽曲で獲得できる最高のコンボ
     public static int[] JudgementAmount; //各判定の数
 
 

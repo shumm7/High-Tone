@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class SliderSquareController : MonoBehaviour
 {
-    public float width;
-    public float length;
+    public float width = 1.05f;
+    public float length = 0;
     public int StartRail = 1;
     public int EndRail = 1;
     float[] posX = { -2.9f, -1.45f, 0, 1.45f, 2.9f };
@@ -15,13 +15,18 @@ public class SliderSquareController : MonoBehaviour
     public float speed;
     public double ArrivalTime;
     public double FinishTime;
+    double SPB;
+    float scrolledTime;
+    int count = 1;
     public float Mask;
     private int BPM;
     private int LPB;
     private float DetectionLine;
 
+    bool flag = false;
+
     public AudioSource audioSource;
-    public AudioClip SliderSE;
+    bool seFlag = false;
 
     //mesh
     private Vector3[] vertices;
@@ -29,36 +34,70 @@ public class SliderSquareController : MonoBehaviour
     private int[] triangles;
     private Mesh mesh;
     private MeshRenderer meshRenderer;
-    public Material material;
-
-
-    void Awake()
-    {
-        audioSource = transform.parent.gameObject.GetComponent<AudioSource>();
-        StartRail = Range(StartRail, 1, 5);
-        EndRail = Range(EndRail, 1, 5);
-
-        SetPosition();
-        setMesh(width, length, Mask);
-        CreateMesh();
-
-        DetectionLine = GameManager.DetectionLineY;
-    }
-
 
 
     void FixedUpdate()
     {
+
         if (this.gameObject.activeSelf)
         {
-            if(transform.localPosition.y <= DetectionLine)
+            this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
+
+            float y = transform.localPosition.y;
+            bool pressed = isPressing(GetHitting(y));
+
+            if (y <= DetectionLine)
             {
                 Mask += speed * Time.fixedDeltaTime;
+                if(!flag && pressed){
+                    flag = true;
+                    seFlag = true;
+                    audioSource.Play();
+                }
+            }
+            
+            //描画処理
+            if (flag)
+            {
+                setMesh(width, length, Mask - 0.075f);
+                CreateMesh();
+            }
+            if (y + length < -2.5f)
+                gameObject.SetActive(false);
+
+            //効果音
+            if (seFlag &&( y + length < DetectionLine || !pressed) ) {
+                audioSource.Stop();
+                seFlag = false;
+            }
+            if(pressed && !seFlag){
+                audioSource.Play();
+                seFlag = true;
             }
 
-            setMesh(width, length, Mask);
-            CreateMesh();
-            this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
+            //判定処理
+            scrolledTime = (float)(TimeComponent.GetCurrentTimePast() - ArrivalTime);
+            if (scrolledTime >= SPB * count && scrolledTime + ArrivalTime <= FinishTime)
+            {
+                count++;
+
+                if (pressed)
+                {
+                    ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Perfect, 1);
+                }
+                else
+                {
+                    if (flag) //一度押している
+                    {
+                        ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 1);
+                    }
+                    else //一度も押していない
+                    {
+                        ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Miss, 1);
+                    }
+                }
+            }
+
         }
     }
 
@@ -126,10 +165,10 @@ public class SliderSquareController : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    public void SetPosition()
+    void SetPosition()
     {
         Vector3 localPos = transform.localPosition;
-        localPos.x = (posX[StartRail - 1] + posX[EndRail - 1]) / 2f;
+        localPos.x = (posX[StartRail] + posX[EndRail]) / 2f;
         transform.localPosition = localPos;
     }
 
@@ -149,11 +188,11 @@ public class SliderSquareController : MonoBehaviour
 
             if(StartRail <= EndRail)
             {
-                return (StartRail - 1) * 3 + 1 + step;
+                return StartRail * 3 + 1 + step;
             }
             else
             {
-                return (StartRail - 1) * 3 + 1 - step;
+                return StartRail * 3 + 1 - step;
             }
         }
         else
@@ -167,14 +206,35 @@ public class SliderSquareController : MonoBehaviour
         if (button == -1)
             return false;
 
-        for(int i=-3; i<=3; i++)
+        for(int i=-2; i<=2; i++)
         {
-            button = Range(button + i, 0, 14);
-            if (TimeComponent.isKeyPressingDetailed(button))
+            if (TimeComponent.isKeyPressing(TimeComponent.GetKeyRail(Range(button + i, 0, 14))))
                 return true;
         }
-
         return false;
+
+     }
+
+    public void setParam(float Speed, double arrivalTime, double finishTime, int bpm, int lpb, int startRail, int endRail)
+    {
+        speed = Speed;
+        ArrivalTime = arrivalTime;
+        FinishTime = finishTime;
+        BPM = bpm;
+        LPB = lpb;
+
+        SPB = ((double)60 / ((double)BPM * (double)LPB));
+        length = speed * (float)(FinishTime - ArrivalTime);
+
+        StartRail = Range(startRail, 0, 4);
+        EndRail = Range(endRail, 0, 4);
+
+        SetPosition();
+        setMesh(width, length, Mask);
+        CreateMesh();
+
+        DetectionLine = GameManager.DetectionLineY;
+        audioSource = transform.parent.GetComponents<AudioSource>()[1];
     }
 
     private int Range(int num, int min, int max)

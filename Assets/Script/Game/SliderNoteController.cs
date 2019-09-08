@@ -51,7 +51,15 @@ public class SliderNoteController : MonoBehaviour
         if (this.gameObject.activeSelf)
         {
             double diff = System.Math.Abs(TimeComponent.GetPressedKeyTime(Rail) - ArrivalTime);
-            if (diff <= 0.16 && diff > 0.13) //Bad
+            if (diff <= 0.06 || (System.Math.Abs(ArrivalTime - TimeComponent.GetCurrentTimePast()) <= 0.06 && TimeComponent.isKeyPressing(Rail))) //Perfect
+            {
+                audioSource.PlayOneShot(NotePerfectSE);
+                this.gameObject.SetActive(false);
+                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Perfect, 1);
+                AddEffect(ScoreCalculation.Judgement.Perfect);
+                //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Perfect");
+            }
+            else if (diff <= 0.16 && diff > 0.13) //Bad
             {
                 this.gameObject.SetActive(false);
                 ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 1);
@@ -74,14 +82,6 @@ public class SliderNoteController : MonoBehaviour
                 ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Great, 1);
                 AddEffect(ScoreCalculation.Judgement.Great);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Great");
-            }
-            else if (System.Math.Abs(ArrivalTime - TimeComponent.GetCurrentTimePast())<=0.06 && TimeComponent.isKeyPressing(Rail)) //Perfect
-            {
-                audioSource.PlayOneShot(NotePerfectSE);
-                this.gameObject.SetActive(false);
-                ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Perfect, 1);
-                AddEffect(ScoreCalculation.Judgement.Perfect);
-                //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Perfect");
             }
         }
     }

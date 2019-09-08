@@ -1319,7 +1319,7 @@ MonoBehaviour:
   CursorCategory: {fileID: 1953193230}
   audioMixer: {fileID: 24100000, guid: e12172fd72ce1a24ba9d3584c8d20505, type: 2}
   MusicPreview: {fileID: 165703542}
-  Enter: {fileID: 8300000, guid: df20b037bfca37a4bba00bdcc4226260, type: 3}
+  Enter: {fileID: 8300000, guid: a7b20679135e1f140b1c52f3a3df8227, type: 3}
   Countdown: {fileID: 249453919}
   SceneChange: {fileID: 129701344}
 --- !u!4 &165703540
@@ -1839,7 +1839,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -67.399994, y: -65.7}
+  m_AnchoredPosition: {x: -67.3999, y: -65.69995}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!82 &249453922
