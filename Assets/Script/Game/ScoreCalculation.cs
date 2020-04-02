@@ -29,11 +29,21 @@ public class ScoreCalculation : MonoBehaviour
 
     private bool FullcomboFlag = false;
 
+    private void Awake()
+    {
+        MaximumScore = 0;
+        MaximumCombo = 0;
+        ScoreAddedFlag = -1;
+        Combo = 0;
+        MaxCombo = 0;
+        Score = 0;
+    }
 
     void Start()
     {
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
+        ObjectiveScore = GameManager.MaximumScoreForDisplay;
         ObjectiveScore = GameManager.MaximumScoreForDisplay;
 
         ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
@@ -74,28 +84,23 @@ public class ScoreCalculation : MonoBehaviour
 
     public static void SetNoteJudgement(int judge, int type) //0Perfect 1Great 2Good 3Bad 4Miss
     {
-        JudgementCount[judge]++;
-        float BonusMultiplier = Mathf.Round(Combo / 20f) * 10;
-        BonusMultiplier = (BonusMultiplier / 100f) * 5f + 1;
-
-        if (type == NoteType.Special)
+        if (judge != -1)
         {
-            BonusMultiplier *= 2;
-        }
-
-        if(type == NoteType.Special)
-        {
-            MaximumScore += (int)400;
-
-        }
-        else
-        {
-            MaximumScore += (int)200;
+            JudgementCount[judge]++;
         }
         MaximumCombo++;
 
+        float BonusMultiplier = 1;
+
+        if (type == NoteType.Special)
+        {
+            BonusMultiplier = 2;
+        }
+        MaximumScore += (int)(200f * BonusMultiplier);
         switch (judge)
         {
+            case -1:
+                break;
             case 0: //Perfect
                 Score += (int)(200f * BonusMultiplier);
                 Combo++;
@@ -123,6 +128,7 @@ public class ScoreCalculation : MonoBehaviour
 
     public static class Judgement
     {
+        public const int None = -1; //空のスコア
         public const int Perfect = 0;
         public const int Great = 1;
         public const int Good = 2;
@@ -130,8 +136,7 @@ public class ScoreCalculation : MonoBehaviour
         public const int Miss = 4;
     }
 
-    public static class NoteType
-    {
+    public static class NoteType {
         public const int Normal = 1;
         public const int Slider = 2;
         public const int Special = 3;

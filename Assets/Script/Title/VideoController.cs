@@ -71,11 +71,14 @@ public class VideoController : MonoBehaviour
             seq.Join(
                 DOVirtual.DelayedCall(5f, () =>
                 {
+                    DataHolder.TemporaryGameObject = SceneChange;
                     SceneManager.LoadScene(nextScene);
                 })
             );
 
             seq.Play();
+
+            DataHolder.PlayedTime = 0;
         }
     }
 

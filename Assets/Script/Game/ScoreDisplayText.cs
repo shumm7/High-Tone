@@ -41,7 +41,7 @@ public class ScoreDisplayText : MonoBehaviour
         rectTran.DOScale(new Vector3(0.5f, 0.5f, 1f), ScaleChangeTimeFullcombo).SetEase(Ease.OutBounce);
         audioSource.PlayOneShot(audioSource.clip);
 
-        DOVirtual.DelayedCall(ScaleChangeTimeFullcombo + 2, () =>
+        DOVirtual.DelayedCall(ScaleChangeTimeFullcombo + 4, () =>
         {
             RawImage FadeInImage = fullcomboText.GetComponent<RawImage>();
             DOTween.ToAlpha(() => FadeInImage.color, a => FadeInImage.color = a, 0f, 0.5f);

@@ -17,7 +17,7 @@ public class MainMusicSelect : MonoBehaviour
     public int Difficulty = 0;
     public static bool flag = false;
 
-    public static int SelectedFrame = 0;
+    public int SelectedFrame = 0;
     private bool isScreenScrolling = false;
     private int tempDifficulty;
 
@@ -76,6 +76,7 @@ public class MainMusicSelect : MonoBehaviour
 
     void Start()
     {
+        DisplayMode = -1;
         flag = true;
         musicList = GetComponent<MusicDataLoader>().getMusicList().music;
         categoryList = GetComponent<MusicDataLoader>().getMusicList().category;
@@ -92,6 +93,7 @@ public class MainMusicSelect : MonoBehaviour
 
         DOVirtual.DelayedCall(0.5f, () =>
         {
+            FadeOutSceneChange();
             FrameFade(SortedMusicList.Length, true, 0.25f, true);
         });
         DOVirtual.DelayedCall(0.75f, () =>
@@ -606,6 +608,7 @@ public class MainMusicSelect : MonoBehaviour
 
         sceneChangeTween.Join(
             DOVirtual.DelayedCall(6f, () => {
+                DataHolder.TemporaryGameObject = SceneChange;
                 SceneManager.LoadScene("Game");
             })
         );
@@ -1075,11 +1078,42 @@ public class MainMusicSelect : MonoBehaviour
         }
     }
 
+    private void FadeOutSceneChange()
+    {
+        float timeDelay = 0.5f;
+        GameObject[] changer = new GameObject[4];
+        RectTransform[] rectTran = new RectTransform[4];
+
+        var dontDestroyOnLoadScene = SceneManager.GetSceneByName("DontDestroyOnLoad");
+
+        for (int i = 0; i < 4; i++)
+        {
+            changer[i] = DataHolder.TemporaryGameObject.transform.Find(i.ToString()).gameObject;
+            rectTran[i] = changer[i].GetComponent<RectTransform>();
+        }
+
+        Sequence sceneChangeTween = DOTween.Sequence();
+        for (int i = 0; i < 4; i++)
+        {
+            sceneChangeTween.Insert(1 + 0.25f * (3 - i),
+                rectTran[i].DOLocalMoveX(-1280, timeDelay).SetEase(Ease.OutQuint)
+            );
+        }
+
+        sceneChangeTween.Join(
+            DOVirtual.DelayedCall(4f, () =>
+            {
+                Destroy(DataHolder.TemporaryGameObject);
+            })
+        );
+
+        sceneChangeTween.Play();
+
+    }
+
     private class Sortmode
     {
         public const int Lexicon = 0;
         public const int ListJson = 1;
     }
-
-
 }

@@ -20,6 +20,7 @@ public class DataHolder : MonoBehaviour
     public static bool DebugMode = false; //デバッグモード
     public static float MasterVolume = 0; //マスター音量[dB]
     public static float BGMVolume = 0; //BGM音量[dB]
+    public static int PlayedTime = 0;
     public static int PlayTimePerCredit = 2; //1クレジットでプレイできる曲数
     public static double GlobalNoteOffset = 0.03; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
 
@@ -37,6 +38,7 @@ public class DataHolder : MonoBehaviour
     public static string TemporaryString;
     public static int TemporaryIntNumber;
     public static double TemporaryNumber;
+    public static GameObject TemporaryGameObject;
 
     void Awake()
     {

@@ -24,6 +24,7 @@ public class SliderSquareController : MonoBehaviour
     private float DetectionLine;
 
     bool flag = false;
+    bool scoredFlag = false;
 
     public AudioSource audioSource;
     bool seFlag = false;
@@ -84,16 +85,27 @@ public class SliderSquareController : MonoBehaviour
                 if (pressed)
                 {
                     ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Perfect, 1);
+                    scoredFlag = false;
                 }
                 else
                 {
-                    if (flag) //一度押している
+                    if (!scoredFlag)
                     {
-                        ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 1);
+                        if (flag) //一度押している
+                        {
+                            ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 1);
+                            scoredFlag = true;
+                        }
+                        else //一度も押していない
+                        {
+                            ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Miss, 1);
+                            scoredFlag = true;
+
+                        }
                     }
-                    else //一度も押していない
+                    else
                     {
-                        ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Miss, 1);
+                        ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.None, 1);
                     }
                 }
             }

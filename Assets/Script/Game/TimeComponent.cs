@@ -24,6 +24,11 @@ void Awake()
         StartTime = Time.time;
     }
 
+    public static void ResetStartTime()
+    {
+        StartTime = 0;
+    }
+
     public static double GetStartTime()
     {
         return StartTime;

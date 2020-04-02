@@ -8,6 +8,7 @@ using UnityEngine.Video;
 using UnityEngine.Networking;
 using TMPro;
 using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool PlayVideo = true;
     [SerializeField] float PlayTime = 3.0f;
     [SerializeField] int Difficulty = 0; //0Easy 1Normal 2Hard 3VeryHard 4Extra
-    public float speed = 10f;
+    public float speed;
     public double GlobalOffset = 0;
     public GameObject NotesPrefab;
     public GameObject SliderNotesPrefab;
@@ -48,6 +49,7 @@ public class GameManager : MonoBehaviour
     public Text ComboText;
     public Text LevelText;
     public GameObject SceneChange;
+    public GameObject SceneChangeEnd;
 
     //Loading
     public float FadeInTime = 3f;
@@ -90,7 +92,18 @@ public class GameManager : MonoBehaviour
         Debug.Log("ゲームが開始されました");
         GameStatus = Status.Initializing;
 
+        //ノーツ初期化
+        foreach (Transform childTransform in NotesParentObject.transform)
+        {
+            Destroy(childTransform.gameObject);
+        }
+        TimeComponent.ResetStartTime();
+
         //到着時間
+        if (MusicID=="")
+        {
+            speed = DataHolder.NoteSpeed;
+        }
         NoteSpeed = speed;
         ArrivalTime = (NoteY - DetectionLineY) / speed;
 
@@ -109,7 +122,6 @@ public class GameManager : MonoBehaviour
         videoPlayer.url = DefaultVideoClip.originalPath;
         videoPlayer.source = VideoSource.Url;
         videoPlayer.Play();
-
 
         StartCoroutine("StartSettings");
     }
@@ -170,6 +182,40 @@ public class GameManager : MonoBehaviour
             DataHolder.Combo = ScoreCalculation.MaxCombo;
             DataHolder.MaximumCombo = ScoreCalculation.MaximumCombo;
             DataHolder.JudgementAmount = ScoreCalculation.JudgementCount;
+            DataHolder.PlayedTime = DataHolder.PlayedTime + 1;
+
+            //SceneChange
+            float timeDelay = 0.5f;
+            GameObject[] changer = new GameObject[4];
+            RectTransform[] rectTran = new RectTransform[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                changer[i] = SceneChangeEnd.transform.Find(i.ToString()).gameObject;
+                rectTran[i] = changer[i].GetComponent<RectTransform>();
+            }
+            changer[0].transform.parent.gameObject.SetActive(true);
+
+            DontDestroyOnLoad(SceneChangeEnd);
+
+            Sequence sceneChangeTween = DOTween.Sequence();
+            for (int i = 0; i < 4; i++)
+            {
+                changer[i].SetActive(true);
+                sceneChangeTween.Insert(1 + 0.25f * i,
+                    rectTran[i].DOLocalMoveX(0, timeDelay).SetEase(Ease.OutQuint)
+                );
+            }
+
+            sceneChangeTween.Join(
+                DOVirtual.DelayedCall(6f, () =>
+                {
+                    DataHolder.TemporaryGameObject = SceneChangeEnd;
+                    SceneManager.LoadScene("Result");
+                })
+            );
+
+            sceneChangeTween.Play();
         }
     }
 
@@ -231,6 +277,7 @@ public class GameManager : MonoBehaviour
         if ((tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset) <= 0)
         {
             MusicStartTimeOffset = Mathf.Ceil(-(float)(tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset));
+            DebugLog("ノーツ開始時間が負の数であるため、オフセットを設定しています " + MusicStartTimeOffset.ToString());
         }
 
         for (int n = 0; n < MaxNotesAmount; n++)
@@ -339,7 +386,7 @@ public class GameManager : MonoBehaviour
 
             for (int i = 0; i < 4; i++)
             {
-                changer[i] = SceneChange.transform.Find(Difficulty.ToString()).Find(i.ToString()).gameObject;
+                changer[i] = DataHolder.TemporaryGameObject.transform.Find(Difficulty.ToString()).Find(i.ToString()).gameObject;
                 rectTran[i] = changer[i].GetComponent<RectTransform>();
             }
 
@@ -366,7 +413,7 @@ public class GameManager : MonoBehaviour
         //音楽の再生
         TimeComponent.SetStartTime();
         DebugLog("音楽を再生しました");
-        audioSource.PlayScheduled(Time.time + MusicStartTimeOffset);
+        audioSource.PlayScheduled(AudioSettings.dspTime + MusicStartTimeOffset);
         if(PlayVideo)
             videoPlayer.Play();
 
