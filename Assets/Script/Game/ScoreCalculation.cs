@@ -44,7 +44,6 @@ public class ScoreCalculation : MonoBehaviour
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
         ObjectiveScore = GameManager.MaximumScoreForDisplay;
-        ObjectiveScore = GameManager.MaximumScoreForDisplay;
 
         ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
     }
@@ -75,10 +74,23 @@ public class ScoreCalculation : MonoBehaviour
         }
 
         //フルコンボテキスト
-        if (GameManager.GameStatus == GameManager.Status.Finished && !FullcomboFlag && Combo >= MaxNotesAmount)
+        if(GameManager.GameStatus == GameManager.Status.Finished && !FullcomboFlag)
         {
-            GetComponent<ScoreDisplayText>().StartEffectFullCombo();
+            if (Combo == MaximumCombo)
+            {
+            GetComponent<ScoreDisplayText>().StartEffectResult("fullcombo");
             FullcomboFlag = true;
+            }
+            else if (ObjectiveScore <= Score)
+            {
+                GetComponent<ScoreDisplayText>().StartEffectResult("clear");
+                FullcomboFlag = true;
+            }
+            else if (ObjectiveScore > Score)
+            {
+                GetComponent<ScoreDisplayText>().StartEffectResult("failed");
+                FullcomboFlag = true;
+            }
         }
     }
 

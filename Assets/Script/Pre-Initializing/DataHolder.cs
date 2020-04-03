@@ -9,6 +9,7 @@ public class DataHolder : MonoBehaviour
     public static float NoteSpeed = 10; //ノーツの降下スピード（5 - 25）
     public static float MusicVolume = -20; //楽曲音量[dB]
     public static float SEVolume = -20; //効果音音量[dB]
+    public static int Credits; //現在のクレジット数
 
     //ゲームプレイ
     public static string NextMusicID; //次に再生する楽曲のID
@@ -20,8 +21,9 @@ public class DataHolder : MonoBehaviour
     public static bool DebugMode = false; //デバッグモード
     public static float MasterVolume = 0; //マスター音量[dB]
     public static float BGMVolume = 0; //BGM音量[dB]
-    public static int PlayedTime = 0;
+    public static int PlayedTime = 0; //プレイした回数
     public static int PlayTimePerCredit = 2; //1クレジットでプレイできる曲数
+    public static bool FreePlay = true; //クレジット不要でプレイができるかどうか
     public static double GlobalNoteOffset = 0.03; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
 
     //スコア

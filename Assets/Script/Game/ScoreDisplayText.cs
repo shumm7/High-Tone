@@ -13,7 +13,12 @@ public class ScoreDisplayText : MonoBehaviour
     public RawImage Bad;
     public RawImage Miss;
     public RawImage Fullcombo;
+    public RawImage Clear;
+    public RawImage Failed;
     public AudioSource audioSource;
+    public AudioClip fullcomboAudio;
+    public AudioClip clearAudio;
+    public AudioClip failedAudio;
     public float ScaleChangeTime = 0.1f;
     public float ScaleChangeTimeFullcombo = 1.2f;
     private GameObject text;
@@ -30,10 +35,26 @@ public class ScoreDisplayText : MonoBehaviour
         rectTran.DOScale(new Vector3(0.12f, 0.12f, 1f), ScaleChangeTime);
     }
 
-    public void StartEffectFullCombo()
+    public void StartEffectResult(string mode)
     {
+        GameObject fullcomboText = null;
+        if (mode == "fullcombo")
+        {
+            fullcomboText = Fullcombo.gameObject;
+            audioSource.clip = fullcomboAudio;
+        }
+        else if (mode == "clear")
+        {
+            fullcomboText = Clear.gameObject;
+            audioSource.clip = clearAudio;
+        }
+        else if (mode == "failed")
+        {
+            fullcomboText = Failed.gameObject;
+            audioSource.clip = failedAudio;
+        }
+
         setAllInactive();
-        GameObject fullcomboText = Fullcombo.gameObject;
         fullcomboText.SetActive(true);
         RectTransform rectTran = fullcomboText.GetComponent<RectTransform>();
         fullcomboText.transform.localScale = Vector3.zero;

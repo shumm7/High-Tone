@@ -6,7 +6,7 @@ public class TimeComponent : MonoBehaviour
 {
     public static double StartTime;
     public static double[] KeyPressedTime;
-    static KeyCode[] Key = new KeyCode[] {
+    public static KeyCode[] Key = new KeyCode[] {
             KeyCode.Q, KeyCode.A,KeyCode.Z,
             KeyCode.W, KeyCode.S, KeyCode.X,
             KeyCode.E, KeyCode.D, KeyCode.C,
@@ -22,6 +22,11 @@ void Awake()
     public static void SetStartTime()
     {
         StartTime = Time.time;
+    }
+
+    public static void SetStartTime(float addition)
+    {
+        StartTime = Time.time + addition;
     }
 
     public static void ResetStartTime()

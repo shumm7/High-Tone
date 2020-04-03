@@ -17,11 +17,14 @@ public class ResultController : MonoBehaviour
 
     public Transform Background;
     public Transform Panel;
+    public Text OldHighscore;
+    public Text OldMaxcombo;
     public Transform Artwork;
     public Image ArtworkImage;
     public Transform Result;
     public Transform[] Judgement = new Transform[5];
     public Transform Score;
+    public Transform NewRecord;
     public Transform Rank;
     public RawImage RankImage;
     public RawImage PressButton;
@@ -32,6 +35,16 @@ public class ResultController : MonoBehaviour
     public GameObject SceneChangeEnd;
 
     string[] DifficultyName = new string[5] {"EASY", "NORMAL", "HARD", "MASTER", "EXTRA"};
+    int ScoreValue = 0;
+    int ComboValue = 0;
+    int MaximumScore = 1;
+    int MaximumCombo = 1;
+    float ScorePercentage = 0;
+    float ComboPercentage = 0;
+    int Difficulty = 0;
+    string UserID = "Guest";
+    int CurrentHighscore = 0;
+    int CurrentMaxCombo = 0;
 
     private void Awake()
     {
@@ -63,6 +76,7 @@ public class ResultController : MonoBehaviour
         }
         Score.localPosition = new Vector3(-600f, Score.localPosition.y, Score.localPosition.z);
         Score.gameObject.SetActive(false);
+        NewRecord.gameObject.SetActive(false);
         Rank.localScale = new Vector3(0f, 0f, 1f);
         RankImage.color = new Color(1f, 1f, 1f, 0f);
         PressButton.color = new Color(1f, 1f, 1f, 0f);
@@ -73,22 +87,23 @@ public class ResultController : MonoBehaviour
         
 
         //値設定
-        int ScoreValue = 0;
-        int ComboValue = 0;
-        int MaximumScore = 1;
-        int MaximumCombo = 1;
-        float ScorePercentage = 0;
-        float ComboPercentage = 0;
-        int Difficulty = 0;
-
         if (!DebugMode)
         {
+            UserID = DataHolder.UserID;
             ScoreValue = DataHolder.Score;
             ComboValue = DataHolder.Combo;
             MaximumScore = DataHolder.MaximumScore;
             MaximumCombo = DataHolder.MaximumCombo;
             Difficulty = DataHolder.Difficulty;
             MusicID = DataHolder.NextMusicID;
+
+            ScoreController.Score sc = ScoreController.LoadScore(UserID, Difficulty, MusicID);
+            CurrentHighscore = sc.MaxScore;
+            CurrentMaxCombo = sc.MaxCombo;
+
+            OldHighscore.text = LintNumber(7, sc.MaxScore);
+            OldMaxcombo.text = LintNumber(4, sc.MaxCombo);
+
             for (int i = 0; i < 5; i++)
             {
                 Judgement[i].Find("Text").GetComponent<TextMeshProUGUI>().text = LintNumber(4, DataHolder.JudgementAmount[i]);
@@ -212,6 +227,10 @@ public class ResultController : MonoBehaviour
         sequence.Insert(5.5f,
             DOVirtual.DelayedCall(0f, () => {
                 Score.Find("ScorePercentage").GetComponent<Text>().text = ((int)ScorePercentage).ToString() + "％";
+                if (CurrentHighscore < ScoreValue)
+                {
+                    NewRecord.gameObject.SetActive(true);
+                }
             }
             )
         );
@@ -258,7 +277,7 @@ public class ResultController : MonoBehaviour
 
             for (int i = 0; i < 4; i++)
             {
-                changer[i] = DataHolder.TemporaryGameObject.transform.Find(i.ToString()).gameObject;
+                changer[i] = GameObject.Find("SceneChangeEnd").transform.Find(i.ToString()).gameObject;
                 rectTran[i] = changer[i].GetComponent<RectTransform>();
             }
 
@@ -293,6 +312,8 @@ public class ResultController : MonoBehaviour
             if(Input.anyKey == true)
             {
                 ResultBGM.DOFade(0, 1);
+
+                ScoreController.SaveScore(UserID, Difficulty, MusicID, ScoreValue, ComboValue);
 
                 flag = false;
                 float timeDelay = 0.5f;

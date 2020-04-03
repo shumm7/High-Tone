@@ -50,9 +50,16 @@ public class TextScroll : MonoBehaviour
 
     public void SeqOnComplete()
     {
-        seq.Restart();
+            seq.Restart();
         //seq.Pause();
-        rectTran.transform.localPosition = PosBefore;
+        if (rectTran != null)
+        {
+            rectTran.transform.localPosition = PosBefore;
+        }
+        else
+        {
+            KillSequence();
+        }
     }
 
     public void KillSequence()

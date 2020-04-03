@@ -11,48 +11,68 @@ using DG.Tweening;
 public class initialization : MonoBehaviour
 {
     public string nextScene;
+    public bool DebugMode = false;
     Text Display;
+    public GameObject DebugInfo;
+    
+
+    private void Awake()
+    {
+        DebugInfo.SetActive(false);
+    }
 
     void Start()
     {
+
         Display = GetComponent<Text>();
         Option optionData = new Option();
+        float StartTime = Time.time;
 
-        AddLine("プロセス開始時間: " + Time.time.ToString());
-        AddLine("");
-        AddLine("システム時刻: " + DateTime.Now.ToString());
-        AddLine("Unity Engine バージョン: " + Application.unityVersion);
-        AddLine("システムバージョン: " + Application.version);
-        AddLine("");
-        
         //設定データ
-        Display.text += "設定データ読み込み: ";
         try
         {
             string temp = GetComponent<MusicDataLoader>().load("Music/config.json");
             optionData = JsonUtility.FromJson<Option>(temp);
+
+            DebugMode = optionData.isDebugMode;
+            debug.SetDebugMode(DebugMode);
+            if (DebugMode)
+            {
+                DebugInfo.SetActive(true);
+                DontDestroyOnLoad(DebugInfo);
+            }
+
+            AddText("設定データ読み込み完了:");
+            AddText("");
         }
         catch (Exception e)
         {
             Debug.LogWarning(e.Message);
         }
 
+        AddLine("プロセス開始時間: " + StartTime.ToString());
+        AddLine("");
+        AddLine("システム時刻: " + DateTime.Now.ToString());
+        AddLine("Unity Engine バージョン: " + Application.unityVersion);
+        AddLine("システムバージョン: " + Application.version);
+        AddLine("");
+
         if (optionData == null){
-            Display.text += "- 失敗 ";
+            AddText("- 失敗 ");
 
             GetComponent<MusicDataLoader>().saveFile("Music/config.json", JsonUtility.ToJson(new Option()));
-            Display.text += "- 生成中 ";
+            AddText("- 生成中 ");
 
             string temp = GetComponent<MusicDataLoader>().load("Music/config.json");
             optionData = JsonUtility.FromJson<Option>(temp);
         }
-        Display.text += "- ロード完了";
+        AddText("- ロード完了");
         DataHolder.DebugMode = optionData.DebugMode;
         DataHolder.MasterVolume = optionData.MasterVolume;
         DataHolder.BGMVolume = optionData.BGMVolume;
         DataHolder.PlayTimePerCredit = optionData.PlayTimePerCredit;
         DataHolder.GlobalNoteOffset = optionData.GlobalNoteOffset;
-        Display.text += "- 適用完了\n";
+        AddText("- 適用完了\n");
 
         try
         {
@@ -60,7 +80,7 @@ public class initialization : MonoBehaviour
             MusicDataLoader.List musicList = GetComponent<MusicDataLoader>().getMusicList();
             for(int i=0; i<musicList.music.Length; i++)
             {
-                Display.text += "   [" + musicList.music[i].category + "]" + musicList.music[i].id;
+                AddText("   [" + musicList.music[i].category + "]" + musicList.music[i].id);
             }
             AddLine("");
 
@@ -68,7 +88,7 @@ public class initialization : MonoBehaviour
             MusicDataLoader.Category[] categoryList = GetComponent<MusicDataLoader>().getCategoryList();
             for (int i = 0; i < categoryList.Length; i++)
             {
-                Display.text += "   [" + categoryList[i].id + "]" + categoryList[i].name;
+                AddText("   [" + categoryList[i].id + "]" + categoryList[i].name);
             }
             AddLine("");
 
@@ -80,15 +100,37 @@ public class initialization : MonoBehaviour
             Quit();
         }
 
+        AddLine("");
+        AddLine("起動準備完了: 経過時間: " + (Time.time - StartTime).ToString());
 
+        if (!DebugMode)
+        {
+            LoadScene();
+        }
+    }
 
-        AddLine("ゲーム開始中");
-        LoadScene();
+    private void Update()
+    {
+        if (Input.anyKey)
+        {
+            LoadScene();
+        }
     }
 
     void AddLine(string text)
     {
-        Display.text += text + "\n";
+        if (DebugMode)
+        {
+            Display.text += text + "\n";
+        }
+    }
+
+    void AddText(string text)
+    {
+        if (DebugMode)
+        {
+            Display.text += text;
+        }
     }
 
     void Quit()
@@ -115,6 +157,7 @@ public class initialization : MonoBehaviour
         public float BGMVolume = 0; //BGM音量[dB]
         public int PlayTimePerCredit = 2; //1クレジットでプレイできる曲数
         public double GlobalNoteOffset = 0.03; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
+        public bool isDebugMode = false;
     }
 
 

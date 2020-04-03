@@ -73,23 +73,30 @@ public class MusicFrameComponent : MonoBehaviour
         minute = Mathf.FloorToInt((float)retTime / 60f);
         sec = (int)(retTime % 60f);
 
-        return minute.ToString() + ":" + sec.ToString();
+        string res = minute.ToString() + ":";
+
+        if (sec == 0)
+        {
+            return res + "00";
+        }
+        else
+        {
+            return res + sec.ToString();
+        }
     }
 
     IEnumerator SetAudioTime(string path)
     {
-        using (var uwr = UnityWebRequestMultimedia.GetAudioClip("file://" + Directory.GetCurrentDirectory() + "/" + path, AudioType.WAV))
-        {
-            yield return uwr.SendWebRequest();
-            if (uwr.isNetworkError || uwr.isHttpError)
+        var uwr = UnityWebRequestMultimedia.GetAudioClip("file://" + Directory.GetCurrentDirectory() + "/" + path, AudioType.WAV);
+
+        yield return uwr.SendWebRequest();
+        if (uwr.isNetworkError || uwr.isHttpError)
             {
                 Debug.LogError(uwr.error);
                 yield break;
             }
 
-            music = DownloadHandlerAudioClip.GetContent(uwr);
-            TimeUI.text = GetAboutTime(music.length);
-
-        }
+        music = DownloadHandlerAudioClip.GetContent(uwr);
+        TimeUI.text = GetAboutTime(music.length);
     }
 }

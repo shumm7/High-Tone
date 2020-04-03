@@ -19,14 +19,14 @@ public class VideoController : MonoBehaviour
 
     void Start()
     {
-        while (GetComponent<MusicDataLoader>().checkExist("Music/TitleVideos/"+maxVideoAmount.ToString()+".mp4"))
+        while (GetComponent<MusicDataLoader>().checkExist("Audio/TitleVideos/"+maxVideoAmount.ToString()+".mp4"))
         {
             maxVideoAmount++;
         }
 
         if (maxVideoAmount > 0)
         {
-            videoPlayer.url = "Music/TitleVideos/" + video.ToString() + ".mp4";
+            videoPlayer.url = "Audio/TitleVideos/" + video.ToString() + ".mp4";
             videoPlayer.source = VideoSource.Url;
             videoPlayer.loopPointReached += OnVideoFinished;
 
@@ -96,7 +96,7 @@ public class VideoController : MonoBehaviour
                 video = 0;
             }
 
-            vp.url = "Music/TitleVideos/" + video.ToString() + ".mp4";
+            vp.url = "Audio/TitleVideos/" + video.ToString() + ".mp4";
             vp.source = VideoSource.Url;
             vp.Prepare();
             vp.loopPointReached += OnVideoFinished;

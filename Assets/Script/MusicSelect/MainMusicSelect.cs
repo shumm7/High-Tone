@@ -66,14 +66,6 @@ public class MainMusicSelect : MonoBehaviour
     //Scene Change
     public GameObject SceneChange;
 
-    KeyCode[] Key = new KeyCode[] {
-            KeyCode.Q, KeyCode.A,KeyCode.Z,
-            KeyCode.W, KeyCode.S, KeyCode.X,
-            KeyCode.E, KeyCode.D, KeyCode.C,
-            KeyCode.R, KeyCode.F, KeyCode.V,
-            KeyCode.T, KeyCode.G, KeyCode.B,
-        };
-
     void Start()
     {
         DisplayMode = -1;
@@ -569,6 +561,7 @@ public class MainMusicSelect : MonoBehaviour
 
     private void GameStart()
     {
+        Debug.Log("Started");
         float timeDelay = 0.5f;
         GameObject[] changer = new GameObject[4];
         RectTransform[] rectTran = new RectTransform[4];
@@ -601,7 +594,7 @@ public class MainMusicSelect : MonoBehaviour
         );
 
         sceneChangeTween.Join(
-            DOVirtual.DelayedCall(5f, () => {
+            DOVirtual.DelayedCall(4f, () => {
                 PlayMusicPreview(-1);
             })
         );
@@ -648,7 +641,7 @@ public class MainMusicSelect : MonoBehaviour
             GetButtonUI(5).text = "戻る";
             //GetButtonUI(5).text = sortmodeName;
 
-            int num = FindMusicNumber(SortedMusicList[selection]);
+            int num = FindMusicNumber(SortedMusicList[Range(selection, 0, SortedMusicList.Length-1)]);
             CategoryUI.text = GetCategoryName(musicList[num].category);
         }
         else if (mode == 1)
@@ -663,6 +656,7 @@ public class MainMusicSelect : MonoBehaviour
                 case 1:
                 case 2:
                 case 3:
+                case 4:
                     GetButtonUI(3).text = "設定  ▼";
                     GetButtonUI(4).text = "設定  ▲";
                     GetButtonUI(5).text = "戻る";

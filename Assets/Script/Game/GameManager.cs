@@ -86,8 +86,11 @@ public class GameManager : MonoBehaviour
     private int NextNotesNumber = 0;
     private float MusicStartTimeOffset = 0;
 
+    bool FinishedFlag;
+
     void Awake()
     {
+        FinishedFlag = false;
 
         Debug.Log("ゲームが開始されました");
         GameStatus = Status.Initializing;
@@ -164,58 +167,62 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if(TimeComponent.GetCurrentTimePast() >= 15 && GameStatus==Status.InGame && audioSource.isPlaying == false)
+        if(TimeComponent.GetCurrentTimePast() >= 15 && GameStatus==Status.InGame && audioSource.isPlaying == false && !FinishedFlag)
         {
-            DebugLog("音楽が終了しました");
-            if (videoPlayer.isPlaying)
-            {
-                RawImage FadeInImage = rawImage.GetComponent<RawImage>();
-                DOTween.ToAlpha( () => FadeInImage.color, a => FadeInImage.color = a, 0f, 1f);
-            }
-            GameStatus = Status.Finished;
-
-            //データホルダーに保存
-            DataHolder.Score = ScoreCalculation.Score;
-            DataHolder.ObjectiveScore = ScoreCalculation.ObjectiveScore;
-            DataHolder.MaximumScore = ScoreCalculation.MaximumScore;
-            DataHolder.ScorePercentage = ScoreCalculation.ScorePercentage;
-            DataHolder.Combo = ScoreCalculation.MaxCombo;
-            DataHolder.MaximumCombo = ScoreCalculation.MaximumCombo;
-            DataHolder.JudgementAmount = ScoreCalculation.JudgementCount;
-            DataHolder.PlayedTime = DataHolder.PlayedTime + 1;
-
-            //SceneChange
-            float timeDelay = 0.5f;
-            GameObject[] changer = new GameObject[4];
-            RectTransform[] rectTran = new RectTransform[4];
-
-            for (int i = 0; i < 4; i++)
-            {
-                changer[i] = SceneChangeEnd.transform.Find(i.ToString()).gameObject;
-                rectTran[i] = changer[i].GetComponent<RectTransform>();
-            }
-            changer[0].transform.parent.gameObject.SetActive(true);
-
-            DontDestroyOnLoad(SceneChangeEnd);
-
-            Sequence sceneChangeTween = DOTween.Sequence();
-            for (int i = 0; i < 4; i++)
-            {
-                changer[i].SetActive(true);
-                sceneChangeTween.Insert(1 + 0.25f * i,
-                    rectTran[i].DOLocalMoveX(0, timeDelay).SetEase(Ease.OutQuint)
-                );
-            }
-
-            sceneChangeTween.Join(
-                DOVirtual.DelayedCall(6f, () =>
+            FinishedFlag = true;
+            DOVirtual.DelayedCall(1f, () => {
+                DebugLog("音楽が終了しました");
+                if (videoPlayer.isPlaying)
                 {
-                    DataHolder.TemporaryGameObject = SceneChangeEnd;
-                    SceneManager.LoadScene("Result");
-                })
-            );
+                    RawImage FadeInImage = rawImage.GetComponent<RawImage>();
+                    DOTween.ToAlpha(() => FadeInImage.color, a => FadeInImage.color = a, 0f, 1f);
+                }
 
-            sceneChangeTween.Play();
+                GameStatus = Status.Finished;
+
+                //データホルダーに保存
+                DataHolder.Score = ScoreCalculation.Score;
+                DataHolder.ObjectiveScore = ScoreCalculation.ObjectiveScore;
+                DataHolder.MaximumScore = ScoreCalculation.MaximumScore;
+                DataHolder.ScorePercentage = ScoreCalculation.ScorePercentage;
+                DataHolder.Combo = ScoreCalculation.MaxCombo;
+                DataHolder.MaximumCombo = ScoreCalculation.MaximumCombo;
+                DataHolder.JudgementAmount = ScoreCalculation.JudgementCount;
+                DataHolder.PlayedTime = DataHolder.PlayedTime + 1;
+
+                //SceneChange
+                float timeDelay = 0.5f;
+                GameObject[] changer = new GameObject[4];
+                RectTransform[] rectTran = new RectTransform[4];
+
+                for (int i = 0; i < 4; i++)
+                {
+                    changer[i] = SceneChangeEnd.transform.Find(i.ToString()).gameObject;
+                    rectTran[i] = changer[i].GetComponent<RectTransform>();
+                }
+                changer[0].transform.parent.gameObject.SetActive(true);
+
+                DontDestroyOnLoad(SceneChangeEnd);
+
+                Sequence sceneChangeTween = DOTween.Sequence();
+                for (int i = 0; i < 4; i++)
+                {
+                    changer[i].SetActive(true);
+                    sceneChangeTween.Insert(3 + 0.25f * i,
+                        rectTran[i].DOLocalMoveX(0, timeDelay).SetEase(Ease.OutQuint)
+                    );
+                }
+
+                sceneChangeTween.Join(
+                    DOVirtual.DelayedCall(6f, () =>
+                    {
+                        DataHolder.TemporaryGameObject = SceneChangeEnd;
+                        SceneManager.LoadScene("Result");
+                    })
+                );
+
+                sceneChangeTween.Play();
+            });
         }
     }
 
@@ -276,16 +283,17 @@ public class GameManager : MonoBehaviour
         double tSPB = ((double)60 / ((double)BPM * (double)Notes[0].LPB));
         if ((tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset) <= 0)
         {
-            MusicStartTimeOffset = Mathf.Ceil(-(float)(tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset));
+            MusicStartTimeOffset = Mathf.Ceil(-(float)(tSPB * (double)Notes[0].num + ((double)Offset / (double)6000 * tSPB) - ArrivalTime + GlobalOffset));
             DebugLog("ノーツ開始時間が負の数であるため、オフセットを設定しています " + MusicStartTimeOffset.ToString());
         }
 
         for (int n = 0; n < MaxNotesAmount; n++)
         {
             //1ノーツの単位 60/(BPM*LPB)
-            double SPB = (60f / ((double)BPM * (double)Notes[n].LPB));
+            double SPB = (60 / ((double)BPM* (double)Notes[n].LPB));
+            double OffsetSec = ((double)Offset / ((660000 / ((double)Notes[n].LPB / 4)) / (double)BPM)) * SPB;
 
-            NoteStartTime[n] = SPB * Notes[n].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
+            NoteStartTime[n] = SPB * Notes[n].num + OffsetSec - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
 
             if (n + 1 != MaxNotesAmount && Notes[n].num == Notes[n + 1].num && Notes[n].LPB == Notes[n + 1].LPB)// && Notes[n].type == Notes[n + 1].type)
             {
@@ -297,7 +305,8 @@ public class GameManager : MonoBehaviour
                 for (int k=0; k< Notes[n].notes.Length; k++)
                 {
                     double tempSPB = (60f / ((double)BPM * (double)Notes[n].notes[k].LPB));
-                    NoteStartTimeSlider[n,k] = tempSPB * Notes[n].notes[k].num + ((double)Offset / (double)6000 * SPB) - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
+                    OffsetSec = ((double)Offset / ((660000 / ((double)Notes[n].LPB / 4)) / (double)BPM)) * tempSPB;
+                    NoteStartTimeSlider[n,k] = tempSPB * Notes[n].notes[k].num + OffsetSec - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
 
                 }
             }
@@ -413,9 +422,12 @@ public class GameManager : MonoBehaviour
         //音楽の再生
         TimeComponent.SetStartTime();
         DebugLog("音楽を再生しました");
-        audioSource.PlayScheduled(AudioSettings.dspTime + MusicStartTimeOffset);
-        if(PlayVideo)
-            videoPlayer.Play();
+        DOVirtual.DelayedCall(MusicStartTimeOffset, () =>
+        {
+            audioSource.Play();
+            if (PlayVideo)
+                videoPlayer.Play();
+        });
 
         //ステータス切り替え
         isPlaying = true;
