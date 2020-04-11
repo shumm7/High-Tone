@@ -313,7 +313,20 @@ public class ResultController : MonoBehaviour
             {
                 ResultBGM.DOFade(0, 1);
 
-                ScoreController.SaveScore(UserID, Difficulty, MusicID, ScoreValue, ComboValue);
+                //スコア保存
+                var tempScore = ScoreController.LoadScore(UserID, Difficulty, MusicID);
+                if (ScoreValue > tempScore.MaxScore && ComboValue > tempScore.MaxCombo)
+                {
+                    ScoreController.SaveScore(UserID, Difficulty, MusicID, ScoreValue, ComboValue);
+                }
+                else if (ScoreValue > tempScore.MaxScore && ComboValue <= tempScore.MaxCombo)
+                {
+                    ScoreController.SaveScore(UserID, Difficulty, MusicID, ScoreValue, tempScore.MaxCombo);
+                }
+                else if (ScoreValue <= tempScore.MaxScore && ComboValue > tempScore.MaxCombo)
+                {
+                    ScoreController.SaveScore(UserID, Difficulty, MusicID, tempScore.MaxScore, ComboValue);
+                }
 
                 flag = false;
                 float timeDelay = 0.5f;
@@ -342,7 +355,14 @@ public class ResultController : MonoBehaviour
                     DOVirtual.DelayedCall(3f, () =>
                     {
                         DataHolder.TemporaryGameObject = SceneChangeEnd;
-                        SceneManager.LoadScene("Music Select");
+                        if(DataHolder.PlayedTime >= DataHolder.PlayTimePerCredit)
+                        {
+                            SceneManager.LoadScene("EndScreen");
+                        }
+                        else
+                        {
+                            SceneManager.LoadScene("Music Select");
+                        }
                     })
                 );
 

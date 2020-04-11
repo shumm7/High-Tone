@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7006694988633658594}
   m_Layer: 0
   m_Name: SpecialNote
-  m_TagString: Untagged
+  m_TagString: Note
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -117,7 +117,7 @@ MonoBehaviour:
     type: 3}
   tappedEffectPerfectPrefab: {fileID: 100018, guid: a40b64bf23366dc42a892af2c6ff6140,
     type: 3}
-  audioSource: {fileID: 0}
+  audioSource: []
   NotePerfectSE: {fileID: 8300000, guid: ca3c74c292e71ff4f8e267ea9600da63, type: 3}
   NoteGreatSE: {fileID: 8300000, guid: e9f7f1be740b2554997ef89cc3acf950, type: 3}
   NoteGoodSE: {fileID: 8300000, guid: e9f7f1be740b2554997ef89cc3acf950, type: 3}

@@ -888,7 +888,7 @@ GameObject:
   - component: {fileID: 977905176}
   - component: {fileID: 977905175}
   m_Layer: 5
-  m_Name: SceneChange
+  m_Name: SceneChangeEnd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

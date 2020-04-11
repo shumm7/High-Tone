@@ -23,9 +23,21 @@ public class ScoreCalculation : MonoBehaviour
 
     public static int Combo = 0;
     public static int MaxCombo = 0;
-    public static int Score = 0;
+    public static double Score = 0;
     public static int[] JudgementCount;
     public static float ScorePercentage;
+
+    public static double BaseScore = 0;
+    public static int HighestScore = 900000;
+
+    public static class DetectionRange
+    {
+        public static double Perfect = 0.040;
+        public static double Great = 0.075;
+        public static double Good = 0.100;
+        public static double Bad= 0.130;
+        public static double SliderPressed = 0.010;
+    }
 
     private bool FullcomboFlag = false;
 
@@ -41,23 +53,25 @@ public class ScoreCalculation : MonoBehaviour
 
     void Start()
     {
+        HighestScore = 900000;
         MaxNotesAmount = GameManager.MaxNotesAmount;
         JudgementCount = new int[5];
-        ObjectiveScore = GameManager.MaximumScoreForDisplay;
+        ObjectiveScore = (int)(HighestScore * 0.8);
 
+        BaseScore = (double)HighestScore / (GameManager.MaximumScoreForDisplay / 200);
         ScoreGaugeRectTran = ScoreGaugeMaskUI.gameObject.GetComponent<RectTransform>();
     }
 
     void Update()
     {
         ComboUI.text = Combo.ToString();
-        ScoreUI.text = Score.ToString();
+        ScoreUI.text = System.Math.Round(Score).ToString();
 
         //パーセンテージ計算
         ScorePercentage = (float)Score / (float)MaximumScore;
 
         //ゲージ表示
-        float PercentageForGauge = (float)Score / (float)ObjectiveScore;
+        float PercentageForGauge = (float)Score / ((float)HighestScore * 0.8f);
         if (PercentageForGauge >= 1f)
         {
             PercentageForGauge = 1f;
@@ -103,31 +117,49 @@ public class ScoreCalculation : MonoBehaviour
         MaximumCombo++;
 
         float BonusMultiplier = 1;
+        float ComboBonusMultiplier = 1;
+        float MaximumComboBonusMultiplier = 1;
 
         if (type == NoteType.Special)
         {
             BonusMultiplier = 2;
         }
-        MaximumScore += (int)(200f * BonusMultiplier);
+
+        //Combo
         switch (judge)
         {
             case -1:
                 break;
             case 0: //Perfect
-                Score += (int)(200f * BonusMultiplier);
-                Combo++;
-                break;
             case 1: //Great
-                Score += (int)(100f * BonusMultiplier);
                 Combo++;
                 break;
             case 2: //Good
-                Combo = 0;
-                Score += (int)(50f);
-                break;
             case 3:
             case 4:
                 Combo = 0;
+                break;
+        }
+        ComboBonusMultiplier = 1 + (float)System.Math.Floor((float)Combo / 10f) * 0.005f;
+        MaximumComboBonusMultiplier = 1 + (float)System.Math.Floor((float)MaximumCombo / 10f) * 0.005f;
+
+        //Score
+        MaximumScore += (int)(BonusMultiplier * BaseScore * MaximumComboBonusMultiplier);
+        switch (judge)
+        {
+            case -1:
+                break;
+            case 0: //Perfect
+                Score += (1f * BonusMultiplier * BaseScore * ComboBonusMultiplier);
+                break;
+            case 1: //Great
+                Score += (0.5f * BonusMultiplier * BaseScore * ComboBonusMultiplier);
+                break;
+            case 2: //Good
+                Score += (0.25f * BaseScore);
+                break;
+            case 3:
+            case 4:
                 break;
         }
         ScoreAddedFlag = judge;

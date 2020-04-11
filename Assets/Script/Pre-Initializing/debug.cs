@@ -12,6 +12,7 @@ public class debug : MonoBehaviour
 
     public Text FrameRate;
     public Text StabilizedFrameRate;
+    public Text TimeUI;
     public Text MasterVolume;
     public Text AudioVolume;
     public Text MusicID;
@@ -19,9 +20,13 @@ public class debug : MonoBehaviour
     public Text GameSettings2;
     public Text KeyInput;
     public Text UserID;
+    public Text LoginID;
+    public Text CardReader;
+    public Text CardReaderName;
 
-    public Text DebugLog;
+    public GameObject DebugLog;
 
+    int DisplayMode = 0;
     int keyCount = 0;
     int frameCount;
     float prevTime;
@@ -30,6 +35,7 @@ public class debug : MonoBehaviour
 
     private void Start()
     {
+        DisplayMode = 0;
         frameCount = 0;
         prevTime = 0.0f;
     }
@@ -52,27 +58,31 @@ public class debug : MonoBehaviour
                 prevTime = Time.realtimeSinceStartup;
             }
 
+            //Time
+            System.TimeSpan ts = new System.TimeSpan(0, 0, (int)System.Math.Floor(Time.time));
+            TimeUI.text = "Time: " + ts.ToString();
+
             //Master Volume
             audioMixer.GetFloat("Master", out audioVolume[0]);
-            MasterVolume.text = "Master Volume: "+ audioVolume[0] +" dB";
+            MasterVolume.text = "Master Volume: " + audioVolume[0] + " dB";
 
             //Audio Volume
             audioMixer.GetFloat("BGM", out audioVolume[1]);
             audioMixer.GetFloat("Music", out audioVolume[2]);
             audioMixer.GetFloat("SE", out audioVolume[3]);
-            AudioVolume.text = "BGM: " + (int)audioVolume[1] + "dB / Music: "+ (int)audioVolume[2] + "dB / SE: "+ (int)audioVolume[3] + "dB";
+            AudioVolume.text = "BGM: " + (int)audioVolume[1] + "dB / Music: " + (int)audioVolume[2] + "dB / SE: " + (int)audioVolume[3] + "dB";
 
             //MusicID
             MusicID.text = "Music ID: " + DataHolder.NextMusicID;
 
             //GameSettings
             GameSettings.text = "Difficulty: " + DataHolder.Difficulty.ToString() + "   Video: " + DataHolder.isVideo.ToString() + "   Speed: " + DataHolder.NoteSpeed.ToString();
-            GameSettings2.text = "Played: " + DataHolder.PlayedTime.ToString() +" / "+DataHolder.PlayTimePerCredit.ToString()+"   Video Mode: " + DataHolder.VideoSettingMode;
+            GameSettings2.text = "Played: " + DataHolder.PlayedTime.ToString() + " / " + DataHolder.PlayTimePerCredit.ToString() + "   Video Mode: " + DataHolder.VideoSettingMode;
 
             //Input
             KeyInput.text = "Input: ";
             keyCount = 0;
-            foreach(var keyRecord in TimeComponent.Key)
+            foreach (var keyRecord in TimeComponent.Key)
             {
                 if (Input.GetKey(keyRecord))
                 {
@@ -82,7 +92,7 @@ public class debug : MonoBehaviour
                 {
                     KeyInput.text += "○";
                 }
-                if((keyCount+1) % 3 == 0)
+                if ((keyCount + 1) % 3 == 0)
                 {
                     KeyInput.text += " ";
                 }
@@ -92,14 +102,40 @@ public class debug : MonoBehaviour
             //UserID
             UserID.text = "User ID: " + DataHolder.UserID;
 
+            //LoginID
+            LoginID.text = DataHolder.UserLoginID;
+
+            //CardReader
+            CardReader.text = "Card Reader: " + DataHolder.CardReader;
+
+            //CardReaderName
+            CardReaderName.text = "Reader Name: " + DataHolder.CardReaderName;
 
         }
 
         if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl))
         {
-            SetDebugMode(!isDebugMode);
-            DebugInfo.SetActive(isDebugMode);
+            if (DisplayMode == -1)
+            {
+                DisplayMode = 0;
+                DebugLog.SetActive(true);
+                SetDebugMode(true);
+            }
+            else if (DisplayMode == 0)
+            {
+                DisplayMode = 1;
+                DebugLog.SetActive(false);
+                SetDebugMode(true);
+            }
+            else if (DisplayMode == 1)
+            {
+                DisplayMode = -1;
+                DebugLog.SetActive(false);
+                SetDebugMode(false);
+            }
         }
+
+        DebugInfo.SetActive(isDebugMode);
     }
 
     public static void SetDebugMode(bool mode)

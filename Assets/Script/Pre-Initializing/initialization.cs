@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
-
-
+using NfcPcSc;
 
 public class initialization : MonoBehaviour
 {
@@ -14,11 +13,15 @@ public class initialization : MonoBehaviour
     public bool DebugMode = false;
     Text Display;
     public GameObject DebugInfo;
+    public GameObject NFCReader;
     
 
     private void Awake()
     {
         DebugInfo.SetActive(false);
+
+        //DOTween.Init();
+        //DOTween.defaultAutoPlay = AutoPlay.None;
     }
 
     void Start()
@@ -57,6 +60,8 @@ public class initialization : MonoBehaviour
         AddLine("システムバージョン: " + Application.version);
         AddLine("");
 
+        AddLine("設定データ読み込み中: ");
+        AddText("   ");
         if (optionData == null){
             AddText("- 失敗 ");
 
@@ -72,6 +77,7 @@ public class initialization : MonoBehaviour
         DataHolder.BGMVolume = optionData.BGMVolume;
         DataHolder.PlayTimePerCredit = optionData.PlayTimePerCredit;
         DataHolder.GlobalNoteOffset = optionData.GlobalNoteOffset;
+        DataHolder.FreePlay = optionData.FreePlay;
         AddText("- 適用完了\n");
 
         try
@@ -101,7 +107,35 @@ public class initialization : MonoBehaviour
         }
 
         AddLine("");
+        AddLine("FeliCa カードリーダーの接続中: ");
+        NfcMain.ErrorCode ErrorCode = NFCReader.GetComponent<NfcMain>().initNfc();
+        switch (ErrorCode)
+        {
+            case NfcMain.ErrorCode.NO_ERROR:
+                AddText("   成功");
+                AddText("- " + DataHolder.CardReaderName);
+                DataHolder.CardReader = true;
+                break;
+            case NfcMain.ErrorCode.CANNOT_GET_READER_DATA:
+                AddText("   失敗");
+                AddText("- リーダー情報の取得に失敗");
+                DataHolder.CardReader = false;
+                break;
+            case NfcMain.ErrorCode.NO_READER_AVAILABLE:
+                AddText("   失敗");
+                AddText("- リーダーが存在しません");
+                DataHolder.CardReader = false;
+                break;
+            case NfcMain.ErrorCode.SMARTCARD_SERVICE_DISABLED:
+                AddText("   失敗");
+                AddText("- Smart Cardサービスが無効です");
+                DataHolder.CardReader = false;
+                break;
+        }
+
+        AddLine("");
         AddLine("起動準備完了: 経過時間: " + (Time.time - StartTime).ToString());
+        AddLine("   Enterキーでゲームを開始します。");
 
         if (!DebugMode)
         {
@@ -111,7 +145,7 @@ public class initialization : MonoBehaviour
 
     private void Update()
     {
-        if (Input.anyKey)
+        if (Input.GetKey(KeyCode.Return))
         {
             LoadScene();
         }
@@ -157,6 +191,7 @@ public class initialization : MonoBehaviour
         public float BGMVolume = 0; //BGM音量[dB]
         public int PlayTimePerCredit = 2; //1クレジットでプレイできる曲数
         public double GlobalNoteOffset = 0.03; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
+        public bool FreePlay = true;
         public bool isDebugMode = false;
     }
 

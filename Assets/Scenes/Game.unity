@@ -1890,12 +1890,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5079e3b1c8af5074bbda70dc2b6a97f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MusicID: 
+  MusicID: debug
   PlayVideo: 1
   PlayTime: 1
   Difficulty: 0
   speed: 10
-  GlobalOffset: 0
+  GlobalOffset: 0.03
   NotesPrefab: {fileID: 427921665048636195, guid: a7d28b50aeecd7d45871ec751bffd8bb,
     type: 3}
   SliderNotesPrefab: {fileID: 1560825102361871640, guid: 8c6bb1579cc67634db0fddff9158381a,
@@ -1924,6 +1924,8 @@ MonoBehaviour:
   - 55
   - 55
   - 55
+  AllNotes: []
+  AllNotesSlider: []
 --- !u!114 &782156921
 MonoBehaviour:
   m_ObjectHideFlags: 0

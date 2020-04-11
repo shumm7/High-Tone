@@ -2515,7 +2515,7 @@ GameObject:
   - component: {fileID: 854873952}
   - component: {fileID: 854873951}
   m_Layer: 5
-  m_Name: SceneChange
+  m_Name: SceneChangeEnd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -30,8 +30,6 @@ public class GameManager : MonoBehaviour
     //public GameObject DamageNotesPrefab;
     public GameObject NotesParentObject;
 
-    private int slidernotecount = 0;
-
     //Audio
     public AudioSource audioSource;
 
@@ -69,7 +67,7 @@ public class GameManager : MonoBehaviour
 
     //スコア
     int Combo = 0;
-    int Score = 0;
+    double Score = 0;
     public static int MaximumScoreForDisplay = 0;
 
     // ノーツの初期座標
@@ -85,12 +83,17 @@ public class GameManager : MonoBehaviour
     public static double[,] NoteStartTimeSlider;
     private int NextNotesNumber = 0;
     private float MusicStartTimeOffset = 0;
+    private int sliderNotesCount = 0;
+    public GameObject[] AllNotes;
+    public GameObject[] AllNotesSlider;
 
     bool FinishedFlag;
 
     void Awake()
     {
         FinishedFlag = false;
+        MaximumScoreForDisplay = 0;
+        TimeComponent.music = audioSource;
 
         Debug.Log("ゲームが開始されました");
         GameStatus = Status.Initializing;
@@ -135,35 +138,36 @@ public class GameManager : MonoBehaviour
         if (NextNotesNumber <= (MaxNotesAmount - 1)) {
             if (TimeComponent.GetCurrentTimePast() >= NoteStartTime[NextNotesNumber] && TimeComponent.StartTime != 0)
             {
-                NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
+                AllNotes[NextNotesNumber].SetActive(true);
 
                 if (Notes[NextNotesNumber].type == 2)
                 {
                     for (int i = 0; i < Notes[NextNotesNumber].notes.Length; i++)
                     {
-                        NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + (i * 2).ToString()).gameObject.SetActive(true);
-                        NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + (i * 2 + 1).ToString()).gameObject.SetActive(true);
+                        AllNotesSlider[sliderNotesCount].SetActive(true);
+                        AllNotesSlider[sliderNotesCount+1].SetActive(true);
+                        sliderNotesCount += 2;
                     }
                 }
 
                 NextNotesNumber++;
                 while (checkNextNoteIsSameTime(NextNotesNumber - 1))
                 {
-                    NotesParentObject.transform.Find(NextNotesNumber.ToString()).gameObject.SetActive(true);
-                    NextNotesNumber++;
+                    AllNotes[NextNotesNumber].SetActive(true);
 
                     if (Notes[NextNotesNumber].type == 2)
                     {
                         for (int i = 0; i < Notes[NextNotesNumber].notes.Length; i++)
                         {
-                            //NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + (i*2).ToString()).gameObject.SetActive(true);
-                            //NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + (i * 2 + 1).ToString()).gameObject.SetActive(true);
-                            NotesParentObject.transform.Find(NextNotesNumber.ToString() + "-" + i.ToString()).gameObject.SetActive(true);
-
+                            AllNotesSlider[sliderNotesCount].SetActive(true);
+                            AllNotesSlider[sliderNotesCount+1].SetActive(true);
+                            sliderNotesCount+=2;
                         }
                     }
+
+                    NextNotesNumber++;
                 }
-                
+
             }
         }
 
@@ -181,8 +185,7 @@ public class GameManager : MonoBehaviour
                 GameStatus = Status.Finished;
 
                 //データホルダーに保存
-                DataHolder.Score = ScoreCalculation.Score;
-                DataHolder.ObjectiveScore = ScoreCalculation.ObjectiveScore;
+                DataHolder.Score = (int)System.Math.Round(ScoreCalculation.Score);
                 DataHolder.MaximumScore = ScoreCalculation.MaximumScore;
                 DataHolder.ScorePercentage = ScoreCalculation.ScorePercentage;
                 DataHolder.Combo = ScoreCalculation.MaxCombo;
@@ -295,21 +298,21 @@ public class GameManager : MonoBehaviour
 
             NoteStartTime[n] = SPB * Notes[n].num + OffsetSec - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
 
-            if (n + 1 != MaxNotesAmount && Notes[n].num == Notes[n + 1].num && Notes[n].LPB == Notes[n + 1].LPB)// && Notes[n].type == Notes[n + 1].type)
-            {
-                NoteStartTime[n + 1] = NoteStartTime[n];
-                n++;
-            }
             if (Notes[n].type == 2)
             {
                 for (int k=0; k< Notes[n].notes.Length; k++)
                 {
                     double tempSPB = (60f / ((double)BPM * (double)Notes[n].notes[k].LPB));
-                    OffsetSec = ((double)Offset / ((660000 / ((double)Notes[n].LPB / 4)) / (double)BPM)) * tempSPB;
-                    NoteStartTimeSlider[n,k] = tempSPB * Notes[n].notes[k].num + OffsetSec - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
-
+                    double tempOffsetSec = ((double)Offset / ((660000 / ((double)Notes[n].notes[k].LPB / 4)) / (double)BPM)) * tempSPB;
+                    NoteStartTimeSlider[n,k] = tempSPB * Notes[n].notes[k].num + tempOffsetSec - ArrivalTime + GlobalOffset + MusicStartTimeOffset;
                 }
             }
+
+            if (n + 1 != MaxNotesAmount && Notes[n].num == Notes[n + 1].num && Notes[n].LPB == Notes[n + 1].LPB)// && Notes[n].type == Notes[n + 1].type)
+            {
+                NoteStartTime[n + 1] = NoteStartTime[n];
+            }
+
         }
 
         DebugLog("ノーツを生成中");
@@ -417,7 +420,18 @@ public class GameManager : MonoBehaviour
             sceneChangeTween.Play();
         }
         yield return new WaitForSeconds(4);
-      
+
+        //Noteの設定
+        foreach (Transform childTransform in NotesParentObject.transform)
+        {
+            childTransform.gameObject.SetActive(true);
+        }
+        AllNotes = GameObject.FindGameObjectsWithTag("Note");
+        AllNotesSlider = GameObject.FindGameObjectsWithTag("NoteSlider");
+        foreach (Transform childTransform in NotesParentObject.transform)
+        {
+            childTransform.gameObject.SetActive(false);
+        }
 
         //音楽の再生
         TimeComponent.SetStartTime();
@@ -444,19 +458,20 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<NoteController>().SetRailNumber(place);
-            ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num] + ArrivalTime);
+            ClonedNotesObject.GetComponent<NoteController>().SetArrivalTime(NoteStartTime[num], NoteStartTime[num] + ArrivalTime);
             ClonedNotesObject.GetComponent<NoteController>().speed = speed;
 
             MaximumScoreForDisplay += 200;
         }
         else if (Notes[num].type == ScoreCalculation.NoteType.Slider)
         { //Slider Notes
+            //Main
             GameObject ClonedNotesObject = Instantiate(StartSliderNotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
             ClonedNotesObject.SetActive(false);
             ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<StartSliderNoteController>().SetRailNumber(place);
-            ClonedNotesObject.GetComponent<StartSliderNoteController>().SetArrivalTime(NoteStartTime[num] + ArrivalTime);
+            ClonedNotesObject.GetComponent<StartSliderNoteController>().SetArrivalTime(NoteStartTime[num], NoteStartTime[num] + ArrivalTime);
             ClonedNotesObject.GetComponent<StartSliderNoteController>().speed = speed;
             MaximumScoreForDisplay += 200;
 
@@ -467,12 +482,13 @@ public class GameManager : MonoBehaviour
             ClonedSlider.SetActive(false);
             ClonedSlider.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ - 0.005f);
             ClonedSlider.name = num.ToString() + "-" + name.ToString();
-            ClonedSlider.GetComponent<SliderSquareController>().setParam(speed, NoteStartTime[num] + ArrivalTime, NoteStartTimeSlider[num, cnt] + ArrivalTime, BPM, Notes[num].LPB, place, Notes[num].notes[cnt].block);
+            ClonedSlider.GetComponent<SliderSquareController>().setParam(speed, NoteStartTime[num], NoteStartTime[num] + ArrivalTime, NoteStartTimeSlider[num, cnt] + ArrivalTime, BPM, Notes[num].LPB, place, Notes[num].notes[cnt].block);
 
-            MaximumScoreForDisplay += 200 * (int)((NoteStartTimeSlider[num, cnt] - NoteStartTime[num]) * SPB);
-
+            MaximumScoreForDisplay += 200 * (int)( ((NoteStartTimeSlider[num, cnt] - NoteStartTime[num]) / SPB) - 1);
             name++;
 
+
+            //Back
             foreach(MusicDataLoader.NoteInfoNext sliderNote in Notes[num].notes)
             {
                 GameObject ClonedSliderNotes = Instantiate(SliderNotesPrefab, new Vector3(0f, 0f, 0f), Quaternion.Euler(45, 0, 0), NotesParentObject.transform);
@@ -480,7 +496,7 @@ public class GameManager : MonoBehaviour
                 ClonedSliderNotes.transform.localPosition = new Vector3(NoteX[Notes[num].notes[cnt].block], NoteY + speed * (float)(NoteStartTimeSlider[num, cnt] - NoteStartTime[num]), NoteZ);
                 ClonedSliderNotes.name = num.ToString() + "-" + name.ToString();
                 ClonedSliderNotes.GetComponent<SliderNoteController>().SetRailNumber(Notes[num].notes[cnt].block);
-                ClonedSliderNotes.GetComponent<SliderNoteController>().SetArrivalTime(NoteStartTimeSlider[num, cnt] + ArrivalTime);
+                ClonedSliderNotes.GetComponent<SliderNoteController>().SetArrivalTime(NoteStartTimeSlider[num, cnt], NoteStartTimeSlider[num, cnt] + ArrivalTime);
                 ClonedSliderNotes.GetComponent<SliderNoteController>().speed = speed;
                 name++;
 
@@ -492,10 +508,10 @@ public class GameManager : MonoBehaviour
                     ClonedSlider.SetActive(false);
                     ClonedSlider.transform.localPosition = new Vector3(NoteX[Notes[num].notes[cnt].block], NoteY + speed * (float)(NoteStartTimeSlider[num, cnt] - NoteStartTime[num]), NoteZ - 0.005f);
                     ClonedSlider.name = num.ToString() + "-" + name.ToString();
-                    ClonedSlider.GetComponent<SliderSquareController>().setParam(speed, NoteStartTimeSlider[num, cnt] + ArrivalTime, NoteStartTimeSlider[num, cnt + 1] + ArrivalTime, BPM, Notes[num].LPB, Notes[num].notes[cnt].block, Notes[num].notes[cnt+1].block);
+                    ClonedSlider.GetComponent<SliderSquareController>().setParam(speed, NoteStartTime[num], NoteStartTimeSlider[num, cnt] + ArrivalTime, NoteStartTimeSlider[num, cnt + 1] + ArrivalTime, BPM, Notes[num].LPB, Notes[num].notes[cnt].block, Notes[num].notes[cnt+1].block);
                     name++;
 
-                    MaximumScoreForDisplay += 200 * (int)((NoteStartTimeSlider[num, cnt] - NoteStartTime[num]) / SPB);
+                    MaximumScoreForDisplay += 200 * ((int)((NoteStartTimeSlider[num, cnt + 1]- NoteStartTimeSlider[num, cnt]) / SPB));
                 }
                 cnt++;
             }
@@ -507,7 +523,7 @@ public class GameManager : MonoBehaviour
             ClonedNotesObject.transform.localPosition = new Vector3(NoteX[place], NoteY, NoteZ);
             ClonedNotesObject.name = num.ToString();
             ClonedNotesObject.GetComponent<SpecialNoteController>().SetRailNumber(place);
-            ClonedNotesObject.GetComponent<SpecialNoteController>().SetArrivalTime(NoteStartTime[num] + (double)ArrivalTime);
+            ClonedNotesObject.GetComponent<SpecialNoteController>().SetArrivalTime(NoteStartTime[num], NoteStartTime[num] + (double)ArrivalTime);
             ClonedNotesObject.GetComponent<SpecialNoteController>().speed = speed;
 
             MaximumScoreForDisplay += 400;

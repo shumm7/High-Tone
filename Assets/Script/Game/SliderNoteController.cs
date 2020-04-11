@@ -8,6 +8,7 @@ public class SliderNoteController : MonoBehaviour
     public float speed;
     [SerializeField] int Rail;
     [SerializeField] double ArrivalTime;
+    [SerializeField] double StartTime;
     [SerializeField] GameObject tappedEffectBadPrefab;
     [SerializeField] GameObject tappedEffectGoodPrefab;
     [SerializeField] GameObject tappedEffectGreatPrefab;
@@ -32,16 +33,13 @@ public class SliderNoteController : MonoBehaviour
         audioSource = transform.parent.gameObject.GetComponent<AudioSource>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         if (this.gameObject.activeSelf)
         {
-            this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
+            transform.localPosition = new Vector3(transform.localPosition.x, GameManager.NoteY, transform.localPosition.z) - (new Vector3(0, 1f, 0) * speed * (float)(TimeComponent.GetCurrentTimePast() - StartTime));
         }
-    }
 
-    void Update()
-    {
         if (this.transform.position.y < -2.5f)
         {
             this.gameObject.SetActive(false);
@@ -51,7 +49,7 @@ public class SliderNoteController : MonoBehaviour
         if (this.gameObject.activeSelf)
         {
             double diff = System.Math.Abs(TimeComponent.GetPressedKeyTime(Rail) - ArrivalTime);
-            if (diff <= 0.06 || (System.Math.Abs(ArrivalTime - TimeComponent.GetCurrentTimePast()) <= 0.06 && TimeComponent.isKeyPressing(Rail))) //Perfect
+            if (diff <= ScoreCalculation.DetectionRange.Perfect || (System.Math.Abs(ArrivalTime - TimeComponent.GetCurrentTimePast()) <= ScoreCalculation.DetectionRange.SliderPressed && TimeComponent.isKeyPressing(Rail))) //Perfect
             {
                 audioSource.PlayOneShot(NotePerfectSE);
                 this.gameObject.SetActive(false);
@@ -59,7 +57,7 @@ public class SliderNoteController : MonoBehaviour
                 AddEffect(ScoreCalculation.Judgement.Perfect);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Perfect");
             }
-            else if (diff <= 0.16 && diff > 0.13) //Bad
+            else if (diff <= ScoreCalculation.DetectionRange.Bad && diff > ScoreCalculation.DetectionRange.Good) //Bad
             {
                 this.gameObject.SetActive(false);
                 ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 1);
@@ -67,7 +65,7 @@ public class SliderNoteController : MonoBehaviour
 
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Bad");
             }
-            else if (diff <= 0.13 && diff > 0.10) //Good
+            else if (diff <= ScoreCalculation.DetectionRange.Good && diff > ScoreCalculation.DetectionRange.Great) //Good
             {
                 audioSource.PlayOneShot(NoteGoodSE);
                 this.gameObject.SetActive(false);
@@ -75,7 +73,7 @@ public class SliderNoteController : MonoBehaviour
                 AddEffect(ScoreCalculation.Judgement.Good);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Good");
             }
-            else if (diff <= 0.10 && diff > 0.06) //Great
+            else if (diff <= ScoreCalculation.DetectionRange.Great && diff > ScoreCalculation.DetectionRange.Perfect) //Great
             {
                 audioSource.PlayOneShot(NoteGreatSE);
                 this.gameObject.SetActive(false);
@@ -91,9 +89,10 @@ public class SliderNoteController : MonoBehaviour
         Rail = num;
     }
 
-    public void SetArrivalTime(double Time)
+    public void SetArrivalTime(double _StartTime, double _ArrivalTime)
     {
-        ArrivalTime = Time;
+        StartTime = _StartTime;
+        ArrivalTime = _ArrivalTime;
     }
 
     private void AddEffect(int judgement)

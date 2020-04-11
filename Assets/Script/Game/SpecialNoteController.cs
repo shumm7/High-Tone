@@ -7,6 +7,7 @@ public class SpecialNoteController : MonoBehaviour
 
     public float speed;
     [SerializeField] int Rail;
+    [SerializeField] double StartTime;
     [SerializeField] double ArrivalTime;
     [SerializeField] GameObject tappedEffectBadPrefab;
     [SerializeField] GameObject tappedEffectGoodPrefab;
@@ -34,16 +35,13 @@ public class SpecialNoteController : MonoBehaviour
         audioSource = transform.parent.gameObject.GetComponents<AudioSource>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         if (this.gameObject.activeSelf)
         {
-            this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
+            transform.localPosition = new Vector3(transform.localPosition.x, GameManager.NoteY, transform.localPosition.z) - (new Vector3(0, 1f, 0) * speed * (float)(TimeComponent.GetCurrentTimePast() - StartTime));
         }
-    }
 
-    void Update()
-    {
         if (this.transform.position.y < -2.5f)
         {
             this.gameObject.SetActive(false);
@@ -53,7 +51,7 @@ public class SpecialNoteController : MonoBehaviour
         if (this.gameObject.activeSelf)
         {
             double diff = System.Math.Abs(TimeComponent.GetPressedKeyTime(Rail) - ArrivalTime);
-            if (diff <= 0.15 && diff > 0.1) //Bad
+            if (diff <= ScoreCalculation.DetectionRange.Bad && diff > ScoreCalculation.DetectionRange.Good) //Bad
             {
                 this.gameObject.SetActive(false);
                 ScoreCalculation.SetNoteJudgement(ScoreCalculation.Judgement.Bad, 3);
@@ -61,7 +59,7 @@ public class SpecialNoteController : MonoBehaviour
 
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Bad");
             }
-            else if (diff <= 0.1 && diff > 0.06) //Good
+            else if (diff <= ScoreCalculation.DetectionRange.Good && diff > ScoreCalculation.DetectionRange.Great) //Good
             {
                 audioSource[0].PlayOneShot(NoteGoodSE);
                 this.gameObject.SetActive(false);
@@ -69,7 +67,7 @@ public class SpecialNoteController : MonoBehaviour
                 AddEffect(ScoreCalculation.Judgement.Good);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Good");
             }
-            else if (diff <= 0.06 && diff > 0.03) //Great
+            else if (diff <= ScoreCalculation.DetectionRange.Great && diff > ScoreCalculation.DetectionRange.Perfect) //Great
             {
                 audioSource[0].PlayOneShot(NoteGreatSE);
                 audioSource[1].PlayOneShot(NoteSpecialSE);
@@ -78,7 +76,7 @@ public class SpecialNoteController : MonoBehaviour
                 AddEffect(ScoreCalculation.Judgement.Great);
                 //GameManager.DebugLog(this.gameObject.name + "番のノーツ: Great");
             }
-            else if (diff <= 0.03 && diff >= 0) //Perfect
+            else if (diff <= ScoreCalculation.DetectionRange.Perfect && diff >= 0) //Perfect
             {
                 audioSource[0].PlayOneShot(NotePerfectSE);
                 audioSource[1].PlayOneShot(NoteSpecialSE);
@@ -95,9 +93,10 @@ public class SpecialNoteController : MonoBehaviour
         Rail = num;
     }
 
-    public void SetArrivalTime(double Time)
+    public void SetArrivalTime(double _StartTime, double _ArrivalTime)
     {
-        ArrivalTime = Time;
+        StartTime = _StartTime;
+        ArrivalTime = _ArrivalTime;
     }
 
     private void AddEffect(int judgement)

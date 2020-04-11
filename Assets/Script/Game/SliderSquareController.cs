@@ -10,15 +10,16 @@ public class SliderSquareController : MonoBehaviour
     public float length = 0;
     public int StartRail = 1;
     public int EndRail = 1;
-    float[] posX = { -2.9f, -1.45f, 0, 1.45f, 2.9f };
+    public float StartPosY;
 
     public float speed;
     public double ArrivalTime;
+    public double StartTime;
     public double FinishTime;
     double SPB;
     float scrolledTime;
     int count = 1;
-    public float Mask;
+    public float Mask = 0;
     private int BPM;
     private int LPB;
     private float DetectionLine;
@@ -36,21 +37,23 @@ public class SliderSquareController : MonoBehaviour
     private Mesh mesh;
     private MeshRenderer meshRenderer;
 
-
-    void FixedUpdate()
+    void Update()
     {
 
         if (this.gameObject.activeSelf)
         {
-            this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
+            //this.transform.localPosition -= new Vector3(0, 1f, 0) * speed * Time.fixedDeltaTime;
+            transform.localPosition = new Vector3(transform.localPosition.x, StartPosY, transform.localPosition.z) - (new Vector3(0, 1f, 0) * speed * (float)(TimeComponent.GetCurrentTimePast() - StartTime));
 
             float y = transform.localPosition.y;
             bool pressed = isPressing(GetHitting(y));
 
             if (y <= DetectionLine)
             {
-                Mask += speed * Time.fixedDeltaTime;
-                if(!flag && pressed){
+                //Mask += speed * Time.fixedDeltaTime;
+                Mask = (speed * (float)(TimeComponent.GetCurrentTimePast() - ArrivalTime));
+
+                if (!flag && pressed){
                     flag = true;
                     seFlag = true;
                     audioSource.Play();
@@ -60,7 +63,7 @@ public class SliderSquareController : MonoBehaviour
             //描画処理
             if (flag)
             {
-                setMesh(width, length, Mask - 0.075f);
+                setMesh(width, length, Mask);
                 CreateMesh();
             }
             if (y + length < -2.5f)
@@ -180,8 +183,9 @@ public class SliderSquareController : MonoBehaviour
     void SetPosition()
     {
         Vector3 localPos = transform.localPosition;
-        localPos.x = (posX[StartRail] + posX[EndRail]) / 2f;
+        localPos.x = (GameManager.NoteX[StartRail] + GameManager.NoteX[EndRail]) / 2f;
         transform.localPosition = localPos;
+        StartPosY = transform.localPosition.y;
     }
 
     int GetHitting(float y)
@@ -218,18 +222,27 @@ public class SliderSquareController : MonoBehaviour
         if (button == -1)
             return false;
 
-        for(int i=-2; i<=2; i++)
+        if (Mathf.Abs(StartRail - EndRail) == 0)
         {
-            if (TimeComponent.isKeyPressing(TimeComponent.GetKeyRail(Range(button + i, 0, 14))))
+            if (TimeComponent.isKeyPressing(StartRail))
                 return true;
+        }
+        else
+        {
+            for (int i = -1; i <= 1; i++)
+            {
+                if (TimeComponent.isKeyPressing(TimeComponent.GetKeyRail(Range(button + i, 0, 14))))
+                    return true;
+            }
         }
         return false;
 
      }
 
-    public void setParam(float Speed, double arrivalTime, double finishTime, int bpm, int lpb, int startRail, int endRail)
+    public void setParam(float Speed, double startTime, double arrivalTime, double finishTime, int bpm, int lpb, int startRail, int endRail)
     {
         speed = Speed;
+        StartTime = startTime;
         ArrivalTime = arrivalTime;
         FinishTime = finishTime;
         BPM = bpm;
