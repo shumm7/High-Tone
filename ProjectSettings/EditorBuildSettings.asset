@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/preloader.unity
     guid: f927a7a655e68ad4aa1e4aeb408f5484
   - enabled: 1
+    path: Assets/Scenes/initialization.unity
+    guid: 49cbb567cd591e3469f060ce19723cec
+  - enabled: 1
+    path: Assets/Scenes/Title.unity
+    guid: cadfd9117e728df40a9a803442af0d75
+  - enabled: 1
     path: Assets/Scenes/Music Select.unity
     guid: c1f3860b0ceb7344b928938f05a998ce
   - enabled: 1
@@ -17,13 +23,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Result.unity
     guid: 258632e401120bb4caa1ada40240db61
-  - enabled: 1
-    path: Assets/Scenes/initialization.unity
-    guid: 49cbb567cd591e3469f060ce19723cec
-  - enabled: 1
-    path: Assets/Scenes/Title.unity
-    guid: cadfd9117e728df40a9a803442af0d75
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Login.unity
     guid: 1277055e6007321458f2a8ae79a57749
+  - enabled: 1
+    path: Assets/Scenes/EndScreen.unity
+    guid: 8f408ddea1ea1a84d94269009ef12d11
   m_configObjects: {}

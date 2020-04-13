@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
-using NfcPcSc;
 
 public class initialization : MonoBehaviour
 {
@@ -14,7 +13,8 @@ public class initialization : MonoBehaviour
     Text Display;
     public GameObject DebugInfo;
     public GameObject NFCReader;
-    
+
+    bool RunGame;
 
     private void Awake()
     {
@@ -26,7 +26,7 @@ public class initialization : MonoBehaviour
 
     void Start()
     {
-
+        RunGame = true;
         Display = GetComponent<Text>();
         Option optionData = new Option();
         float StartTime = Time.time;
@@ -103,51 +103,75 @@ public class initialization : MonoBehaviour
         {
             Debug.LogWarning(e.Message);
             AddLine("   失敗");
-            Quit();
+            RunGame = false;
         }
 
         AddLine("");
         AddLine("FeliCa カードリーダーの接続中: ");
-        NfcMain.ErrorCode ErrorCode = NFCReader.GetComponent<NfcMain>().initNfc();
-        switch (ErrorCode)
+        string NfcReaderName = NFCReader.GetComponent<NFCReader>().GetCardReaderName();
+        NFCReader.GetComponent<UserDataController>().CardReadingEnabled = false;
+        NFCReader.GetComponent<UserDataController>().CardReadingTimeOutLength = optionData.NFCReaderTimeOut;
+        NFCReader.GetComponent<NFCReader>().DetectOnlyFeliCa = optionData.NFCReaderDetectOnlyFeliCa;
+        NFCReader.GetComponent<NFCReader>().ThrowExceptionLog = optionData.NFCReaderExceptionLog;
+        DataHolder.CardReader = optionData.NFCReader;
+        if (DataHolder.CardReader)
         {
-            case NfcMain.ErrorCode.NO_ERROR:
+            if (NfcReaderName == "")
+            {
+                AddLine("   失敗");
+                DataHolder.CardReader = false;
+                DataHolder.CardReaderName = "";
+            }
+            else
+            {
                 AddText("   成功");
-                AddText("- " + DataHolder.CardReaderName);
+                AddLine(" - 【接続済】" + NfcReaderName);
                 DataHolder.CardReader = true;
-                break;
-            case NfcMain.ErrorCode.CANNOT_GET_READER_DATA:
-                AddText("   失敗");
-                AddText("- リーダー情報の取得に失敗");
-                DataHolder.CardReader = false;
-                break;
-            case NfcMain.ErrorCode.NO_READER_AVAILABLE:
-                AddText("   失敗");
-                AddText("- リーダーが存在しません");
-                DataHolder.CardReader = false;
-                break;
-            case NfcMain.ErrorCode.SMARTCARD_SERVICE_DISABLED:
-                AddText("   失敗");
-                AddText("- Smart Cardサービスが無効です");
-                DataHolder.CardReader = false;
-                break;
+                DataHolder.CardReaderName = NfcReaderName;
+            }
+        }
+        else
+        {
+            AddLine("   失敗 - 設定ファイルで無効化されています。");
+            DataHolder.CardReader = false;
+            DataHolder.CardReaderName = "";
         }
 
-        AddLine("");
-        AddLine("起動準備完了: 経過時間: " + (Time.time - StartTime).ToString());
-        AddLine("   Enterキーでゲームを開始します。");
+        if (RunGame)
+        {
+            AddLine("");
+            AddLine("起動準備完了: 経過時間: " + (Time.time - StartTime).ToString());
+            AddLine("   Enterキーでゲームを開始します。");
+        }
+        else
+        {
+            AddLine("");
+            AddLine("起動準備失敗: 経過時間: " + (Time.time - StartTime).ToString());
+            AddLine("   Enterキーでゲームを終了します。");
+        }
 
-        if (!DebugMode)
+        if (!DebugMode && RunGame)
         {
             LoadScene();
+        }
+        else if(!DebugMode && !RunGame)
+        {
+            Quit();
         }
     }
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.Return))
+        if (RunGame)
         {
-            LoadScene();
+            if (Input.GetKey(KeyCode.Return))
+            {
+                LoadScene();
+            }
+        }
+        else
+        {
+            Quit();
         }
     }
 
@@ -192,6 +216,10 @@ public class initialization : MonoBehaviour
         public int PlayTimePerCredit = 2; //1クレジットでプレイできる曲数
         public double GlobalNoteOffset = 0.03; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
         public bool FreePlay = true;
+        public bool NFCReader = true;
+        public float NFCReaderTimeOut = 1f;
+        public bool NFCReaderExceptionLog = false;
+        public bool NFCReaderDetectOnlyFeliCa = false;
         public bool isDebugMode = false;
     }
 

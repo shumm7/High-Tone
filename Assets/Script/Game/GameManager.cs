@@ -434,7 +434,7 @@ public class GameManager : MonoBehaviour
         }
 
         //音楽の再生
-        TimeComponent.SetStartTime();
+        TimeComponent.SetStartTime(MusicStartTimeOffset);
         DebugLog("音楽を再生しました");
         DOVirtual.DelayedCall(MusicStartTimeOffset, () =>
         {

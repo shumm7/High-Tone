@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace NfcPcSc
+namespace SmardCard
 {
     class NfcApi
     {
@@ -12,7 +12,7 @@ namespace NfcPcSc
         public static extern uint SCardListReaders(
           IntPtr hContext, byte[] mszGroups, byte[] mszReaders, ref UInt32 pcchReaders);
 
-        [DllImport("WinScard.dll")]
+        [DllImport("winscard.dll")]
         public static extern uint SCardReleaseContext(IntPtr phContext);
 
         [DllImport("winscard.dll", EntryPoint = "SCardConnectW", CharSet = CharSet.Unicode)]
@@ -20,7 +20,7 @@ namespace NfcPcSc
              uint dwShareMode, uint dwPreferredProtocols, ref IntPtr phCard,
              ref IntPtr pdwActiveProtocol);
 
-        [DllImport("WinScard.dll")]
+        [DllImport("winscard.dll")]
         public static extern uint SCardDisconnect(IntPtr hCard, int Disposition);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -44,35 +44,20 @@ namespace NfcPcSc
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct SCARD_READERSTATE
         {
-            /// <summary>
-            /// Reader
-            /// </summary>
             internal string szReader;
-            /// <summary>
-            /// User Data
-            /// </summary>
             internal IntPtr pvUserData;
-            /// <summary>
-            /// Current State
-            /// </summary>
             internal UInt32 dwCurrentState;
-            /// <summary>
-            /// Event State/ New State
-            /// </summary>
             internal UInt32 dwEventState;
-            /// <summary>
-            /// ATR Length
-            /// </summary>
             internal UInt32 cbAtr;
-            /// <summary>
-            /// Card ATR
-            /// </summary>
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 36)]
             internal byte[] rgbAtr;
         }
 
         [DllImport("winscard.dll", EntryPoint = "SCardGetStatusChangeW", CharSet = CharSet.Unicode)]
         public static extern uint SCardGetStatusChange(IntPtr hContext, int dwTimeout, [In, Out] SCARD_READERSTATE[] rgReaderStates, int cReaders);
+
+        [DllImport("winscard.dll")]
+        public static extern int SCardStatus(IntPtr hCard, string szReader, ref int cch, ref int state, ref IntPtr protocol, byte[] bAttr, ref int cByte);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr LoadLibrary(string lpFileName);
@@ -82,5 +67,6 @@ namespace NfcPcSc
 
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetProcAddress(IntPtr handle, string procName);
+
     }
 }

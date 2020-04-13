@@ -561,7 +561,6 @@ public class MainMusicSelect : MonoBehaviour
 
     private void GameStart()
     {
-        Debug.Log("Started");
         float timeDelay = 0.5f;
         GameObject[] changer = new GameObject[4];
         RectTransform[] rectTran = new RectTransform[4];

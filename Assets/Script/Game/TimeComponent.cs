@@ -6,6 +6,7 @@ public class TimeComponent : MonoBehaviour
 {
     public static double StartTime;
     public static double[] KeyPressedTime;
+    private static float StartTimeOffset;
     public static AudioSource music;
     public static KeyCode[] Key = new KeyCode[] {
             KeyCode.Q, KeyCode.A,KeyCode.Z,
@@ -18,16 +19,19 @@ public class TimeComponent : MonoBehaviour
 void Awake()
     {
         KeyPressedTime = new double[5];
+        StartTimeOffset = 0;
     }
 
     public static void SetStartTime()
     {
         StartTime = Time.time;
+        StartTimeOffset = 0;
     }
 
     public static void SetStartTime(float addition)
     {
-        StartTime = Time.time + addition;
+        StartTime = Time.time;
+        StartTimeOffset = addition;
     }
 
     public static void ResetStartTime()
@@ -42,14 +46,14 @@ void Awake()
 
     public static double GetCurrentTimePast()
     {
-        if (music.isPlaying)
+        if (music.clip != null)
         {
-            return music.time;
+            if (music.isPlaying)
+            {
+                return music.time + StartTimeOffset;
+            }
         }
-        else
-        {
-            return Time.time - StartTime;
-        }
+        return Time.time - StartTime;
     }
 
     public static void SetPressedKeyTime(int num)

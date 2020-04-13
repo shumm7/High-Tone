@@ -65,6 +65,14 @@ public class ScoreCalculation : MonoBehaviour
     void Update()
     {
         ComboUI.text = Combo.ToString();
+        if (Combo >= 10)
+        {
+            ComboUI.gameObject.SetActive(true);
+        }
+        else
+        {
+            ComboUI.gameObject.SetActive(false);
+        }
         ScoreUI.text = System.Math.Round(Score).ToString();
 
         //パーセンテージ計算
