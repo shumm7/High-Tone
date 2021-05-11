@@ -31,6 +31,7 @@ public class NFCReader : MonoBehaviour
             SCardStatus();
             SCardTransmit();
             SCardDisconnect();
+            SCardReleaseContext();
         }
         catch(Exception e)
         {
@@ -187,6 +188,22 @@ public class NFCReader : MonoBehaviour
         if (ret != NfcConstant.SCARD_S_SUCCESS)
         {
             throw new ApplicationException("NFCカードとの切断に失敗しました。code = " + ret);
+        }
+    }
+    
+    private void SCardReleaseContext()
+    {
+
+        if (hContext == IntPtr.Zero)
+        {
+            throw new ApplicationException("コンテキストの取得に失敗しました。");
+        }
+
+        uint ret = NfcApi.SCardReleaseContext(hContext);
+
+        if (ret != NfcConstant.SCARD_S_SUCCESS)
+        {
+            throw new ApplicationException("カードリーダーとの切断に失敗しました。code = " + ret);
         }
     }
 }

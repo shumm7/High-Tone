@@ -26,7 +26,7 @@ public class DataHolder : MonoBehaviour
     public static int PlayedTime = 0; //プレイした回数
     public static int PlayTimePerCredit = 2; //1クレジットでプレイできる曲数
     public static bool FreePlay = true; //クレジット不要でプレイができるかどうか
-    public static double GlobalNoteOffset = 0.03; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
+    public static double GlobalNoteOffset = 0; //ゲーム全体で適用するノーツ判定時のオフセット [秒]
 
     //スコア
     public static int Score = 0; //スコア

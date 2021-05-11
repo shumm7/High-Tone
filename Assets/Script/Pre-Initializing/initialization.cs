@@ -37,7 +37,7 @@ public class initialization : MonoBehaviour
             string temp = GetComponent<MusicDataLoader>().load("Music/config.json");
             optionData = JsonUtility.FromJson<Option>(temp);
 
-            DebugMode = optionData.isDebugMode;
+            DebugMode = optionData.DebugMode;
             debug.SetDebugMode(DebugMode);
             if (DebugMode)
             {
@@ -141,6 +141,8 @@ public class initialization : MonoBehaviour
         {
             AddLine("");
             AddLine("起動準備完了: 経過時間: " + (Time.time - StartTime).ToString());
+            AddLine("【注意】ゲームを終了するとクレジットは消滅します。");
+            AddLine("");
             AddLine("   Enterキーでゲームを開始します。");
         }
         else
@@ -220,7 +222,6 @@ public class initialization : MonoBehaviour
         public float NFCReaderTimeOut = 1f;
         public bool NFCReaderExceptionLog = false;
         public bool NFCReaderDetectOnlyFeliCa = false;
-        public bool isDebugMode = false;
     }
 
 

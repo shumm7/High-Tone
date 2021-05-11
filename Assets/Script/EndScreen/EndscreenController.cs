@@ -237,7 +237,7 @@ public class EndscreenController : MonoBehaviour
             DOVirtual.DelayedCall(3f, () =>
             {
                 DataHolder.TemporaryGameObject = SceneChangeEnd;
-                SceneManager.LoadScene("MusicSelect");
+                SceneManager.LoadScene("Music Select");
             })
         );
 

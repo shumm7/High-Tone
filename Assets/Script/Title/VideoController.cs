@@ -36,7 +36,12 @@ public class VideoController : MonoBehaviour
 
     void Update()
     {
-        if (Input.anyKeyDown && !KeyPressedFlag)
+        if(Input.GetKeyDown(KeyCode.Tab) && DataHolder.DebugMode)
+        {
+            DataHolder.Credits = DataHolder.Credits + 1;
+        }
+
+        if ( (Input.anyKeyDown && !KeyPressedFlag)&& !Input.GetKeyDown(KeyCode.Tab) && (DataHolder.FreePlay || DataHolder.Credits > 0))
         {
             KeyPressedFlag = true;
             AudioSource seAudioSource = GetComponent<AudioSource>();
@@ -79,6 +84,7 @@ public class VideoController : MonoBehaviour
             seq.Play();
 
             DataHolder.PlayedTime = 0;
+            DataHolder.Credits -= 1;
         }
     }
 
